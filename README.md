@@ -1,6 +1,6 @@
-#Installation of requirements
+# Installation of requirements
 
-##Python 3
+## Python 3
 Download one version of python 3 environment, available [here](https://www.python.org/downloads/).
 This program was tested on python 3.5.2
 
@@ -17,7 +17,7 @@ echo "export PYTHONPATH="${PYTHONPATH}:$HOME/local/lib/python3.5/site-packages""
 . $HOME/.bashrc
 ```
 
-##Help for installation of python packages
+## Help for installation of python packages
 We recommend easy_istall and pip, if you do not have root access.
 ```commandline
 easy_install-3.5 --prefix=$HOME/local cclib-1.5 #should be 1.4 or over
@@ -26,7 +26,7 @@ pip3.5 install --user numpy #make sure to install numpy first
 pip3.5 install --user scipy
 ```
 
-#Installation
+# Installation
 
 Download this repository and note where you decide to store it. For proper execution we strongly suggest to create a
 symbolic link to the main file: 
@@ -40,7 +40,7 @@ After reloading the environment, the program should be ready to use.
 . $HOME/.bashrc && . $HOME/.bash_profile
 ```
 
-#Usage
+# Usage
 
 The utility will run interactively simply by executing it:
 ```commandline
@@ -74,7 +74,7 @@ end| (int) | *value*
 4. run BOMD inputs.
 5. process BOMD data. *Not available automatically.*
 
-##Further remarks
+## Further remarks
 
 The directory structure of one run is important. Do not move or remove files from the associated directories.
 Once Gaussian calculations have been submitted, a process monitors them in the background. This can be followed by
