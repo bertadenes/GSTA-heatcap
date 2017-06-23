@@ -1,75 +1,87 @@
-Installation of requirements
+#Installation of requirements
 
-download the latest python environment, currently 3.5.2
-also available at /home/berta/Python-3.5.2.tar.xz
-extract tarball:
-tar xf Python-3.5.2.tar.xz
-configure python:
-cd Python-3.5.2.tar.xz
-./configure --prefix=$HOME
-compile:
-make
+##Python 3
+Download one version of python 3 environment, available [here](https://www.python.org/downloads/).
+This program was tested on python 3.5.2
+
+*Help for installation on unix systems*
+
+```commandline
+tar xf Python-3.5.2.tar.xz #extract tarball
+cd Python-3.5.2
+./configure --prefix=$HOME ##configure python
+make #compile
 make test
 make install
-define pythonpath:
-NOTE: local can be .local instead
-echo "export PYTHONPATH="${PYTHONPATH}:/home/berta/local/lib/python3.5/site-packages"" >> $HOME/.bashrc
+echo "export PYTHONPATH="${PYTHONPATH}:$HOME/local/lib/python3.5/site-packages"" >> $HOME/.bashrc #define pythonpath NOTE: local can be .local instead
 . $HOME/.bashrc
-now you should have easy_install-3.5
-install cclib 1.4(!) and pip:
-easy_install-3.5 --prefix=$HOME/local cclib-1.4
+```
+
+##Help for installation of python packages
+We recommend easy_istall and pip, if you do not have root access.
+```commandline
+easy_install-3.5 --prefix=$HOME/local cclib-1.5 #should be 1.4 or over
 easy_install-3.5 --prefix=$HOME/local pip
-install numpy and scipy, order is important:
-pip3.5 install --user numpy
+pip3.5 install --user numpy #make sure to install numpy first
 pip3.5 install --user scipy
+```
 
-NOT NEEDED after v2.0.0
-pip3.5 install --user portalocker
-pip3.5 install --user --upgrade portalocker
+#Installation
 
-Installation
+Download this repository and note where you decide to store it. For proper execution we strongly suggest to create a
+symbolic link to the main file: 
+```commandline
+ln -s /wherever/this/program/is/main.py $HOME/bin/GSTA-hc
+```
+Make sure to use the absolute path, otherwise the link might be broken.
 
-currently the names of the program and the daemon are fixed to "entropy" and "g09d" therefore 
-commands need to be added:
-THIS SHOULD BE DONE USING ABSOLUTE PATH:
-ln -s /wherever/this/program/is/main.py $HOME/bin/entropy
-ln -s /wherever/this/program/is/daemon/g09daemon.py $HOME/bin/g09d
-
-refresh
+After reloading the environment, the program should be ready to use.
+```commandline
 . $HOME/.bashrc && . $HOME/.bash_profile
+```
 
-Usage
+#Usage
 
-basics v3.0.0:
+The utility will run interactively simply by executing it:
+```commandline
+GSTA-hc
+```
+For more advance usage, flags are available:
+```commandline
+GSTA-hc -f [freq.out file] -c [config file] -t [type]
+```
 
-arguments are optional:
-entropy -f [freq.out file] -c [config file] -t [type for continuing session]
+**Config file**
 
-will check if it is a freq output
+The parameters given in a config file are optional. The program may request interaction for necessary information.
 
-config file (all optional):
-type=value
-1 for vibration wise approach, 2 for NVE sampling
-command=value
-value is the command to start g09, will ask if not given
-options=value
-value is all options you wish to use with commands
-maxvib=value
-number of modes to calculate for, accepts integers and all keyword, will ask if not given
-temp=value
-temperature where data should be calculated, will ask if not given
-end=value
-value can be:
-1 -- create velocity generating inputs.
-2 -- run velocity generating inputs.
-3 -- create BOMD inputs.
-4 -- run BOMD inputs.
-5 -- process BOMD data.
-target=value
-for setting up the a variable for filtering, default is 1 for energy-type variables, not yet implemented
+*example:*
+parameter = value
 
-continuing calculation:
-entropy velgen.out -f velgen/MD.out -t velgen/MD -c must be given to refresh end variable (see above)
-only one CalcFile_ can be in the working directory
+|parameter|var type|value|
+command| (str) | *command to run Gaussian 09*
+options| (str) | *all options you wish to use with command*
+temp| (float) | *temperature where data should be calculated*
+NTraj| (int) | *number of independet trajectories*
+NCalc| (int) | *number of Gaussian calculations allowed to be run at one time*
+rotation| (bool) | *include or exclude rotation*
+end| (int) | *value*
 
-To continue a session, -t flag can be used with "velgen" or "MD" values. The checkpoint CalcFile must be in the parent directory.
+*value* can be:
+1. create velocity generating inputs.
+2. run velocity generating inputs.
+3. create BOMD inputs.
+4. run BOMD inputs.
+5. process BOMD data. *Not available automatically.*
+
+##Further remarks
+
+The directory structure of one run is important. Do not move or remove files from the associated directories.
+Once Gaussian calculations have been submitted, a process monitors them in the background. This can be followed by
+the watchlog files in the directories. This daemon recalls the main program when a calculation is finished. This can
+be done manually if needed:
+```commandline
+GSTA-hc -f [file to process] -t [type] -c [config]
+```
+Configuration file is only needed if the initial run was set to an end already achieved (*see above*).
+Type can be *MOVE*(only if rotation was excluded) *VELGEN* and *MD*.
