@@ -58,7 +58,8 @@ The parameters given in a config file are optional. The program may request inte
 *example:*
 parameter = value
 
-|parameter|var type|value|
+parameter|var type|value
+---|---|---
 command| (str) | *command to run Gaussian 09*
 options| (str) | *all options you wish to use with command*
 temp| (float) | *temperature where data should be calculated*
@@ -74,6 +75,15 @@ end| (int) | *value*
 4. run BOMD inputs.
 5. process BOMD data. *Not available automatically.*
 
+## Process the data
+
+After the simulations all terminated, the data is ready to be processed to obtain heat capacities. Unfortunately the
+automatization of the process is not yet stable, so we recommend to you the postprocess function:
+ ```commandline
+GSTA-hc -t pp -f .Calcfile*
+```
+where .Calcfile* is the binary file used as a checkpoint during the run. This results in an output *cv.out.
+
 ## Further remarks
 
 The directory structure of one run is important. Do not move or remove files from the associated directories.
@@ -85,3 +95,5 @@ GSTA-hc -f [file to process] -t [type] -c [config]
 ```
 Configuration file is only needed if the initial run was set to an end already achieved (*see above*).
 Type can be *MOVE*(only if rotation was excluded) *VELGEN* and *MD*.
+The simulations' length is set to 1 ps, the timestep is 0.1 fs at the moment. We wish to optimize these parameters to
+actual cases and implement the algorithm.

@@ -16,6 +16,8 @@ class NoOutputException(Exception):
 class StillRunningException(Exception):
     pass
 
+program = "GSTA-hc"
+
 class g09calcHandler():
     def submit(self,inp):
         os.chdir(self.workdir)
@@ -55,7 +57,7 @@ class g09calcHandler():
                 raise StillRunningException
 
     def recallMain(self,tout):
-        Popen(["entropy", "-f", tout, "-t", "velgen"])
+        Popen([program, "-f", tout, "-t", "velgen"])
         self.recalledOutputs.append(tout)
         self.toBeRemoved.append(tout)
 
@@ -201,7 +203,7 @@ class g09MDHandler(g09calcHandler):
         logging.basicConfig(filename=os.path.join(self.workdir, "g09daemon.lg"), level=logging.INFO,
                             format='%(asctime)s %(message)s')
     def recallMain(self,tout):
-        Popen(["entropy", "-f", tout, "-t", "BOMD"])
+        Popen([program, "-f", tout, "-t", "BOMD"])
         self.recalledOutputs.append(tout)
         self.toBeRemoved.append(tout)
 
@@ -225,6 +227,6 @@ class g09MoveHandler(g09calcHandler):
         logging.basicConfig(filename=os.path.join(self.workdir, "g09daemon.lg"), level=logging.INFO,
                             format='%(asctime)s %(message)s')
     def recallMain(self,tout):
-        Popen(["entropy", "-f", tout, "-t", "move"])
+        Popen([program, "-f", tout, "-t", "move"])
         self.recalledOutputs.append(tout)
         self.toBeRemoved.append(tout)

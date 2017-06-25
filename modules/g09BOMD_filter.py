@@ -431,23 +431,19 @@ def createMoveInputs(Calc):
     dirpath = os.path.join(Calc.workdir, "velgen")
     Calc.setVelGenDir(dirpath)
     if not os.path.exists(dirpath): os.makedirs(dirpath)
-    if Calc.type == 1:
-        N = Calc.maxvib
-    elif Calc.type == 2:
-        N = Calc.NTraj
+    N = Calc.NTraj
     for i in range(N):
-        if Calc.type == 2:
-            inp = Calc.freqfile.split('.')[0] + "_traj" + str(i + 1) + ".gjf" % (Calc.temp)
-            rand = np.random.randint(low=1, high=400000, dtype=np.int64)
-            rndtemp = genRndTemp(Calc.temp, Calc.mol.natom)
-            com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(
-                len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=0) IOp(1/44=" + str(rand) + ")"
-            title = "Trajectory " + str(i + 1) + " for " + Calc.freqfile.split('.')[0]
-            energy = np.float64(const.R * (rndtemp) * 0.000239005736137668)
-            Calc.addSubCalc(inp)
-            Calc.SubCalcs[-1].rand = rand
-            Calc.SubCalcs[-1].rndtemp = rndtemp
-            Calc.SubCalcs[-1].vibFreq = Calc.mol.vibfreqs[0]
+        inp = Calc.freqfile.split('.')[0] + "_traj" + str(i + 1) + ".gjf" % (Calc.temp)
+        rand = np.random.randint(low=1, high=400000, dtype=np.int64)
+        rndtemp = genRndTemp(Calc.temp, Calc.mol.natom)
+        com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=0) IOp(1/44=" + str(rand) + ")"
+        title = "Trajectory " + str(i + 1) + " for " + Calc.freqfile.split('.')[0]
+        energy = np.float64(const.R * (rndtemp) * 0.000239005736137668)
+        Calc.addSubCalc(inp)
+        #Calc.SubCalcs[-1].name = "traj"+str(i)
+        Calc.SubCalcs[-1].rand = rand
+        Calc.SubCalcs[-1].rndtemp = rndtemp
+        Calc.SubCalcs[-1].vibFreq = Calc.mol.vibfreqs[0]
 
         Calc.addMoveInput(inp)
 
@@ -490,16 +486,9 @@ def createMovedVelInputs(SubCalc):
                 103: 'Lr', 104: 'Rf', 105: 'Db', 106: 'Sg', 107: 'Bh', 108: 'Hs', 109: 'Mt', 110: 'Ds', 111: 'Rg',
                 112: 'Cn'}
     dirpath = SubCalc.workdir
-    if SubCalc.type == 1:
-        print("This function should only me called for type=2 calculations. Exiting.")
-        sys.exit(0)
     inp = SubCalc.freqfile.split('.')[0] + '_' + SubCalc.name  + "_velgen.gjf"
     SubCalc.velgenInput = inp
-    rndtemp = SubCalc.rndtemp
-    if SubCalc.rot:
-        rtemp = str(int(rndtemp))
-    else:
-        rtemp = '0'
+    rtemp = '0'
     SubCalc.rtemp = int(rtemp)
     com = " BOMD(update=1000,StepSize=1,MaxPoints=2,Sample=Fixed,NSample=" + str(len(SubCalc.mol.modeEkin)) + ",NTraj=1,rtemp=" + rtemp + ") nosymmetry"
     title = SubCalc.name + " for " + SubCalc.freqfile.split('.')[0]
@@ -540,38 +529,19 @@ def createVelInputs(Calc):
     dirpath = os.path.join(Calc.workdir,"velgen")
     Calc.setVelGenDir(dirpath)
     if not os.path.exists(dirpath): os.makedirs(dirpath)
-    if Calc.type == 1:
-        N = Calc.maxvib
-    elif Calc.type == 2:
-        N = Calc.NTraj
+    N = Calc.NTraj
     for i in range(N):
-        if Calc.type == 1:
-            inp = Calc.freqfile.split('.')[0] + "_vib" + str(i + 1) + ".gjf"
-            com = " BOMD(update=1000,StepSize=100,MaxPoints=1,nsample=" + str(
-                len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=fixed)"
-            title = "Mode " + str(i + 1) + " freq=" + str(Calc.mol.vibfreqs[i])
-            energy = np.float64(const.R * (Calc.temp + 5) * 0.000239005736137668)
-            Calc.addSubCalc(inp)
-            Calc.SubCalcs[-1].vibIndex = i
-            Calc.SubCalcs[-1].vibFreq = Calc.mol.vibfreqs[i]
-
-        elif Calc.type == 2:
-            inp = Calc.freqfile.split('.')[0]+"_traj"+str(i+1)+".gjf"%(Calc.temp)
-            rand = np.random.randint(low=1,high=400000,dtype=np.int64)
-            rndtemp = genRndTemp(Calc.temp,Calc.mol.natom)
-            if Calc.rot:
-                rtemp = str(int(rndtemp))
-            else:
-                rtemp = '0'
-            com = " BOMD(update=1000,StepSize=1,MaxPoints=2,NTraj=1,Sample=Microcanonical) IOp(1/44=" + str(rand) + ") nosymmetry"
-            com2 = " BOMD(update=1000,StepSize=1,MaxPoints=2,Sample=Fixed,NSample=" + str(
-                len(Calc.mol.vibfreqs)) + ",NTraj=1,rtemp="+rtemp+") geom(checkpoint) nosymmetry"
-            title = "Trajectory "+str(i+1)+" for "+Calc.freqfile.split('.')[0]
-            energy = np.float64(rndtemp*0.001987203611)
-            Calc.addSubCalc(inp)
-            Calc.SubCalcs[-1].rand = rand
-            Calc.SubCalcs[-1].rndtemp = rndtemp
-            Calc.SubCalcs[-1].vibFreq = Calc.mol.vibfreqs[0]
+        inp = Calc.freqfile.split('.')[0]+"_traj"+str(i+1)+".gjf"%(Calc.temp)
+        rand = np.random.randint(low=1,high=400000,dtype=np.int64)
+        rndtemp = genRndTemp(Calc.temp,Calc.mol.natom)
+        rtemp = str(int(rndtemp))
+        com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp="+rtemp+") IOp(1/44=" + str(rand) + ")"
+        title = "Trajectory "+str(i+1)+" for "+Calc.freqfile.split('.')[0]
+        energy = np.float64(int(rndtemp)*0.001987203611)
+        Calc.addSubCalc(inp)
+        Calc.SubCalcs[-1].rand = rand
+        Calc.SubCalcs[-1].rndtemp = rndtemp
+        Calc.SubCalcs[-1].vibFreq = Calc.mol.vibfreqs[0]
 
         Calc.addVelGenInput(inp)
 
@@ -582,53 +552,15 @@ def createVelInputs(Calc):
             inputfile.write(str(Calc.mol.charge)+' '+str(Calc.mol.mult)+'\n')
             for j in range(len(Calc.mol.atomnos)):
                 inputfile.write("%s   %f   %f   %f\n" % (elements[Calc.mol.atomnos[j]],Calc.mol.atomcoords[-1][j][0],Calc.mol.atomcoords[-1][j][1],Calc.mol.atomcoords[-1][j][2]))
-            if Calc.type == 1:
-                inputfile.write("\n1\n")
-                for j in range(len(Calc.mol.atomnos)):
-                    inputfile.write(str(j + 1) + ' ')
-                inputfile.write('\n')
-                for j in range(i):
-                    inputfile.write(str(j+1)+' '+str(0.0)+' ')
-                inputfile.write(str(i+1)+' '+str(energy)+' ')
-                for j in range(i+1,len(Calc.mol.vibfreqs)):
-                    inputfile.write(str(j+1)+' '+str(0.0)+' ')
-                inputfile.write("\n\n")
-            elif Calc.type == 2:
-                inputfile.write("\n--Link1--\n")
-                inputfile.write("%chk=" + inp.split('.')[0] + ".chk\n\n")
-                inputfile.write("#p " + Calc.mol.method + '/' + Calc.mol.basis + com2 + "\n\n")
-                inputfile.write(title + "\n\n")
-                inputfile.write(str(Calc.mol.charge) + ' ' + str(Calc.mol.mult) + '\n')
-                inputfile.write("\n1\n")
-                for j in range(len(Calc.mol.atomnos)):
-                    inputfile.write(str(j + 1) + ' ')
-                inputfile.write('\n')
-                for j in range(len(Calc.mol.vibfreqs)):
-                    inputfile.write(str(j+1)+' '+str(energy)+' ')
-                inputfile.write("\n\n")
+            inputfile.write("\n1\n")
+            for j in range(len(Calc.mol.atomnos)):
+                inputfile.write(str(j + 1) + ' ')
+            inputfile.write('\n')
+            for j in range(len(Calc.mol.vibfreqs)):
+                inputfile.write(str(j+1)+' '+str(energy)+' ')
+            inputfile.write("\n\n")
 
     logging.info("PID" + str(os.getpid()) + ": " + str(N) + " inputs were generated in the " + dirpath + " directory.")
-    return
-
-def runVelGen_old(Calc):
-    """Submits the one-step BOMD calculations to generate velocities. Starts the daemons for
-    watching them if follow-up is requested.
-    Args:
-        Calc (Object): Calculation type object storing the information for a session.
-
-        Submit inputs in Calc.velGenInputs using the Calc.command attribute. If outputs are
-        requested to process by Calc.end attribute, start daemon for each calculation. Daemons'
-        PID are registerred in the log file.
-        Variable *end* can be also specified in config file.
-    """
-    os.chdir(Calc.workdir + "velgen")
-    for inp in Calc.velGenInputs:
-        Popen([str(Calc.command), inp, Calc.options])
-        logging.info("PID" + str(os.getpid()) + ": " + inp + " was submitted")
-        if Calc.end > 2:
-            p = Popen(["g09d", str(Calc.workdir + "velgen"), inp, "-t", "velgen"])
-            logging.info("PID" + str(os.getpid()) + ": daemon for " + inp + " started. PID: " + str(p.pid))
-        sleep(0.1)
     return
 
 def runVelGen(Calc):
@@ -671,20 +603,14 @@ def createMDInput(subCalc):
                 93: 'Np', 94: 'Pu', 95: 'Am', 96: 'Cm', 97: 'Bk', 98: 'Cf', 99: 'Es', 100: 'Fm', 101: 'Md', 102: 'No',
                 103: 'Lr', 104: 'Rf', 105: 'Db', 106: 'Sg', 107: 'Bh', 108: 'Hs', 109: 'Mt', 110: 'Ds', 111: 'Rg',
                 112: 'Cn'}
-    if subCalc.type == 1:
-        title = "Generated velocities mode " + str(subCalc.vibFreq)
-    elif subCalc.type == 2:
-        title = "NVE sampling seed " + str(subCalc.rand) + " T = " + str(int(subCalc.rndtemp))
+    title = "NVE sampling seed " + str(subCalc.rand) + " T = " + str(int(subCalc.rndtemp))
     stepsize = int(10E14 / (subCalc.vibFreq * 1199169832))
 
-    # only for water tests, set to 0.1 fs
+    #set to 0.1 fs
     stepsize = 1000
-    if subCalc.target == 1 or subCalc.target == 2:
-        d = getDecay(subCalc.target, subCalc.temp)
-    else:
-        d = getDecay(subCalc.target,subCalc.temp,subCalc.B)
+    d = getDecay(subCalc.temp)
     MP = str(int(d/(stepsize*10E-20))+201)
-    #only for water tests, set to sum up to 1 ps
+    #set to sum up to 1 ps
     MP = str(5000)
     subCalc.MP = MP
     if subCalc.rot:
@@ -732,31 +658,6 @@ def createMDInput(subCalc):
     logging.info("PID" + str(os.getpid()) + ": 2 inputs were generated in " + dirpath + " for " + subCalc.name + ".")
     return
 
-def runMD_old(subCalc):
-    """Submit a pair of BOMD calculations. Start the daemons for watching them if follow-up is
-    requested.
-    Args:
-        subCalc (Object): SubCalc type object storing information for one vibration or trajectory.
-
-        Submit inputs subCalc.MDinput1 and subCalc.MDinput2 using the Calc.command attribute.
-        If outputs are requested to process by subCalc.end attribute, start daemon for each
-        calculation. Daemons' PID are registered in the log file.
-        Variable *end* is heritaged from Calculation parent and can be also specified in config
-        file.
-    """
-    os.chdir(subCalc.workdir)
-    Popen([str(subCalc.command), str(subCalc.MDinput1), str(subCalc.options)])
-    Popen([str(subCalc.command), str(subCalc.MDinput2), str(subCalc.options)])
-    logging.info("PID" + str(os.getpid()) + ": " + subCalc.MDinput1 + " and " + subCalc.MDinput2 + " were submitted.")
-    if subCalc.end > 4:
-        p1 = Popen(["g09d", str(subCalc.workdir), str(subCalc.MDinput1), "-t", "MD"])
-        sleep(0.1)
-        p2 = Popen(["g09d", str(subCalc.workdir), str(subCalc.MDinput2), "-t", "MD"])
-        sleep(0.1)
-        logging.info("PID" + str(os.getpid()) + ": daemon for " + subCalc.MDinput1 + " started. PID: " + str(p1.pid))
-        logging.info("PID" + str(os.getpid()) + ": daemon for " + subCalc.MDinput2 + " started. PID: " + str(p2.pid))
-    return
-
 def runMD(Calc: object) -> object:
     if os.fork():
         logging.info("PID" + str(os.getpid()) + ": Exiting entropy\n")
@@ -766,7 +667,6 @@ def runMD(Calc: object) -> object:
     return
 
 """data process"""
-
 
 def time(SC):
     """Gets the time from a pair of BOMD calculations. As the two calculations had identical
@@ -804,7 +704,7 @@ def kineticE(SC):
         numpy array of doubles: kinetic energies in hartrees respect to one normal mode,
         derived from the atomic velocities. 
 
-    WARNING: it only works with calculations resembling 1 trajectory.
+    WARNING: it only works with calculations consisting 1 trajectory.
     """
     os.chdir(SC.workdir)
     v_pos = getVel(SC.MDoutput1)
@@ -833,18 +733,11 @@ def kineticE(SC):
     return E_kin
 
 
-def getDecay(target, Tf, b=None):
+def getDecay(Tf, b=None):
     kB = const.k
     h = const.h
     pi = const.pi
-    if target == 1:
-        # for energies
-        B = np.float64((-32 * kB ** 2 * Tf ** 2 * pi ** 3) / (h ** 2))
-    elif target == 2:
-        # for coordinates and velocities
-        B = np.float64((-8 * kB ** 2 * Tf ** 2 * pi ** 3) / (h ** 2))
-    else:
-        B = b
+    B = np.float64((-8 * kB ** 2 * Tf ** 2 * pi ** 3) / (h ** 2))
     # get gaussian decay
     d = np.sqrt(np.divide(np.log(np.float64(1e-8)), B))
     return d
@@ -1446,12 +1339,10 @@ class Calculation():
 
         Velocities are added to the mol object.
         """
-        if self.type == 1: name = "vib"+out.split("_vib")[1].split('.')[0]
-        elif self.type == 2:
-            if "_velgen." in out:
-                name = "traj" + out.split("_traj")[1].split('_velgen.')[0]
-            else:
-                name = "traj"+out.split("_traj")[1].split('.')[0]
+        if "_velgen." in out:
+            name = "traj" + out.split("_traj")[1].split('_velgen.')[0]
+        else:
+            name = "traj"+out.split("_traj")[1].split('.')[0]
         for SC in self.SubCalcs:
             if SC.name == name:
                 SC.mol = processg09output(out, isBOMD=True)
@@ -1689,7 +1580,7 @@ class SubCalc(Calculation):
             parent (Object): Calculation object of the session.
             inp (str): name of the input file created generating velocities.
         Initializes the following attribute:
-            name = vibX on trajX, depending on the sampling
+            name = trajX
             freqfile = parent.freqfile
             workdir = parent.velGenDir
             mol = parent.mol
@@ -1697,9 +1588,7 @@ class SubCalc(Calculation):
             options = parent.options
             temp = parent.temp
             end = parent.end
-            target = parent.target
             rot = parent.rot
-            A,B from parent if manually given, see setTarget()
             inputname = inp
             VELGENDONE = False
             BOMDDONE = False
@@ -1709,7 +1598,6 @@ class SubCalc(Calculation):
             rand = None
             MDinput1 = MDinput2 = None
         """
-        self.type = parent.type
         self.freqfile = parent.freqfile
         self.workdir = parent.velGenDir
         self.mol = parent.mol
@@ -1717,23 +1605,18 @@ class SubCalc(Calculation):
         self.options = parent.options
         self.temp = parent.temp
         self.end = parent.end
-        self.target = parent.target
-        if self.target != 1 and self.target != 2:
-            self.A, self.B = parent.A, parent.B
         self.inputname = inp
         self.VELGENDONE = False
         self.BOMDDONE = False
         self.MDpos = False
         self.MDneg = False
-        if self.type == 1:
-            self.name = "vib" + inp.split("_vib")[1].split('.')[0]
-        elif self.type == 2:
-            self.MOVED = False
-            self.name = "traj"+inp.split("_traj")[1].split('.')[0]
-            self.velgenInput = None
-            self.rand = None
+        self.name = "traj"+inp.split("_traj")[1].split('.')[0]
+        self.velgenInput = None
+        self.rand = None
         self.MDinput1 = self.MDinput2 = None
         self.rot = parent.rot
+        if not parent.rot:
+            self.MOVED = False
 
     def save(self, lock=None):
         """Serializes itself to `".SubCalcFile_"+self.name`

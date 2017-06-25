@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Utility to perform heat capacity and entropy calculations using g09 Born-Oppenheimer Molecular Dynamics and smoothing the data with Gaussian functions.
+Utility to perform heat capacity calculations using g09 Born-Oppenheimer Molecular Dynamics and smoothing the data with Gaussian functions.
 
 Developed by
 D. Berta    berta.denes@ttk.mta.hu
@@ -14,7 +14,7 @@ python3-numpy
 python3-scipy
 """
 
-programName = "entropy"
+programName = "GSTA-hc"
 daemonName = "g09d"
 
 from daemon.g09daemon import g09daemon
@@ -26,8 +26,6 @@ import modules.heat_cap_output as hcout
 
 def main():
     BOMDDONE = VELGENDONE = VELGENWRONG = MOVE= False
-    #try: input=raw_input
-    #except NameError: pass
     parser = argparse.ArgumentParser()
     parser.add_argument('-f','--file')
     parser.add_argument('-c','--config')
@@ -48,7 +46,6 @@ def main():
     else:
         filepath = None
         print("Please give the path to the output!")
-        #
         filepath = input("\n") or filepath
     if os.path.isfile(filepath): 
         if not os.path.isabs(filepath):
@@ -102,8 +99,7 @@ def main():
         if "_MD_pos" in filepath.split(os.sep)[-1]:
             Calc.updateMDpos(filepath)
 
-        if Calc.type == 1: name = "vib"+filepath.split("_vib")[1].split('.')[0].split("_MD_")[0]
-        elif Calc.type == 2: name = "traj"+filepath.split("_traj")[1].split('.')[0].split("_MD_")[0]
+        name = "traj"+filepath.split("_traj")[1].split('.')[0].split("_MD_")[0]
         for SC in Calc.SubCalcs:
             if SC.name == name:
                 if SC.MDpos and SC.MDneg:
@@ -118,7 +114,6 @@ def main():
                         #nve process
                         FL.release()
 
-                        
                 elif not SC.MDpos and SC.MDneg:
                     logging.info("PID"+str(os.getpid())+": "+SC.name+'.'+"MDpos = "+str(SC.MDpos)+". Waiting for it, ending thread.")
                     FL.release()
@@ -174,13 +169,10 @@ def main():
                     logging.info("PID"+str(os.getpid())+": Exiting entropy\n")
                     sys.exit(0)
             if Calc.end > 2:
-                if Calc.type == 1:
-                    name = "vib" + filepath.split("_vib")[1].split('.')[0]
-                elif Calc.type == 2:
-                    if "_velgen." in filepath:
-                        name = "traj" + filepath.split("_traj")[1].split('_velgen.')[0]
-                    else:
-                        name = "traj" + filepath.split("_traj")[1].split('.')[0]
+                if "_velgen." in filepath:
+                    name = "traj" + filepath.split("_traj")[1].split('_velgen.')[0]
+                else:
+                    name = "traj" + filepath.split("_traj")[1].split('.')[0]
                 for SC in Calc.SubCalcs:
                     if SC.name == name:
                         g.createMDInput(SC)
@@ -249,23 +241,29 @@ def main():
             Calc.processConfig(args.config)
         if Calc.command == None: Calc.setCommand()
         if Calc.temp == None: Calc.setTemp()
-        if Calc.type == None: Calc.setType()
+        #if Calc.type == None: Calc.setType()
         if Calc.end == None: Calc.setEnd()
-        if Calc.type == 1:
-            if Calc.maxvib == None: Calc.setMaxVib()
-        elif Calc.type == 2:
-            if Calc.NTraj == None: Calc.setNTraj()
-        if Calc.type == 1:
-            if Calc.end > 0:
-                g.createVelInputs(Calc)
-            if Calc.end > 1:
-                g.runVelGen(Calc)
-        elif Calc.type == 2:
+        # if Calc.type == 1:
+        #     if Calc.maxvib == None: Calc.setMaxVib()
+        # elif Calc.type == 2:
+        #     if Calc.NTraj == None: Calc.setNTraj()
+        # if Calc.type == 1:
+        #     if Calc.end > 0:
+        #         g.createVelInputs(Calc)
+        #     if Calc.end > 1:
+        #         g.runVelGen(Calc)
+        # elif Calc.type == 2:
+        if not Calc.rot:
             if Calc.end > 0:
                 g.createMoveInputs(Calc)
             if Calc.end > 1:
                 Calc.save()
                 g.runMove(Calc)
+        else:
+            if Calc.end > 0:
+                g.createVelInputs(Calc)
+            if Calc.end > 1:
+                g.runVelGen(Calc)
 
     return
 
