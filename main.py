@@ -263,6 +263,7 @@ def main():
             if Calc.end > 0:
                 g.createVelInputs(Calc)
             if Calc.end > 1:
+                Calc.save()
                 g.runVelGen(Calc)
 
     return

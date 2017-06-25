@@ -1347,25 +1347,24 @@ class Calculation():
             if SC.name == name:
                 SC.mol = processg09output(out, isBOMD=True)
                 SC.mol.atomcoords = 0.52917724900001*getCoords(out)[0]
-                if self.type == 1:
+                if "_velgen." in out:
+                    SC.VELGENDONE = True
+                elif SC.rot:
                     SC.VELGENDONE = True
                 else:
-                    if "_velgen." in out:
-                        SC.VELGENDONE = True
-                    else:
-                        SC.MOVED = True
-                        SC.mol.modeEkin = []
-                        with open(out,'r') as f:
-                            READ = False
-                            for line in f:
-                                if "Summary of normal mode sampling:" in line:
-                                    READ = False
-                                    break
-                                if READ and len(line.split()) == 4:
-                                    if line.split()[0] == "Mode":
-                                        SC.mol.modeEkin.append((np.float64(line.split()[3].split('D')[0]+'E'+line.split()[3].split('D')[1])**2)*3.34642001457887E-28)
-                                if "MW displacement        MW velocity" in line:
-                                    READ = True
+                    SC.MOVED = True
+                    SC.mol.modeEkin = []
+                    with open(out,'r') as f:
+                        READ = False
+                        for line in f:
+                            if "Summary of normal mode sampling:" in line:
+                                READ = False
+                                break
+                            if READ and len(line.split()) == 4:
+                                if line.split()[0] == "Mode":
+                                    SC.mol.modeEkin.append((np.float64(line.split()[3].split('D')[0]+'E'+line.split()[3].split('D')[1])**2)*3.34642001457887E-28)
+                            if "MW displacement        MW velocity" in line:
+                                READ = True
                 if SC.VELGENDONE:
                     SC.workdir = self.workdir+os.sep+"MD"
                 logging.info("PID"+str(os.getpid())+": "+SC.name+" is updated")
