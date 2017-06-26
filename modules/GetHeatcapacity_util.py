@@ -6,10 +6,12 @@ heat capacity is calculated as the d<E>/dT differential quotient.
 Also the temperature conversion and average kinetic energy calculating
 functions are here
 """
-from modules.ChangeTemp_util import *
+
 from scipy import linalg, integrate
 from os import chdir, getcwd
 from scipy import linalg, integrate
+import scipy.constants as const
+import numpy as np
 import modules.g09BOMD_filter as g
 
 R = const.R
@@ -317,6 +319,9 @@ def averageDos(Dos):
 
 
 def fitLinear(x, y):
+    if len(x) == 2:
+        p = np.polyfit(x, y, deg=1, cov=False)
+        return p[0], 0
     p, cov = np.polyfit(x,y,deg=1,cov=True)
     return p[0], np.sqrt(cov[0][0])
 

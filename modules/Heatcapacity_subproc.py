@@ -11,15 +11,13 @@ heat capacities both with and without filtering, by differentiation.
 """
 
 from modules.GetHeatcapacity_util import *
-from modules.ChangeTemp_util import *
-import os
 from multiprocessing import Pool
 import modules.g09BOMD_filter as g09f
 from functools import partial
 from contextlib import closing
 import warnings
-import code
 from scipy import integrate
+import numpy as np
 warnings.filterwarnings('ignore')
 try:
     import matplotlib.pyplot as plt

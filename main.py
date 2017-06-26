@@ -15,7 +15,6 @@ python3-scipy
 """
 
 programName = "GSTA-hc"
-daemonName = "g09d"
 
 from daemon.g09daemon import g09daemon
 import modules.g09BOMD_filter as g
@@ -37,6 +36,7 @@ def main():
             if os.fork():
                 sys.exit(0)
             hcout.postProcess(args.file)
+            sys.exit(0)
         else:
             hcout.main()
             sys.exit(0)

@@ -540,6 +540,7 @@ def createVelInputs(Calc):
         energy = np.float64(int(rndtemp)*0.001987203611)
         Calc.addSubCalc(inp)
         Calc.SubCalcs[-1].rand = rand
+        Calc.SubCalcs[-1].rtemp = int(rndtemp)
         Calc.SubCalcs[-1].rndtemp = rndtemp
         Calc.SubCalcs[-1].vibFreq = Calc.mol.vibfreqs[0]
 

@@ -201,46 +201,46 @@ def mp_calcDOS(ppobj):
     return
 
 def postProcess(CF_name):
+    print("postProcess started")
     CF = open(CF_name, "rb")
     Calc = pickle.load(CF)
     workdir = os.path.join(os.path.dirname(os.path.realpath(CF_name)), "MD")
     CF.close()
     cvout = CV_output(Calc)
-    if Calc.type == 2:
-        pp = CV_postProcess(Calc, workdir)
-        for traj in pp.trajs:
-            calcDOS(traj, pp)
-            pp.dosQM.append(hcu.getDosQM(pp.dos[-1], pp.temp))
-            pp.dosG.append(hcu.getDosG(pp.dos[-1], pp.temp))
-            calcSmoothedEnergies(traj, pp)
-            cvout.print("{0:s} processed".format(traj))
-            # break
-        pp.removeWrongTrajs()
-        for traj in pp.trajs:
-            pp.getCV_fromDos(traj)
-        CV_v, err_v = pp.getCV_fromVelSmoothing()
-        CV_t, err_t = pp.getCV_fromTrajSmoothing()
-        #     break
-        # f, axarr = plt.subplots(3)
-        # axarr[0].plot(range(6000), pp.dos[0])
-        # axarr[1].plot(range(6000), pp.dosG[0])
-        # axarr[2].plot(range(6000), pp.dosQM[0])
-        # axarr[0].set_title("dos")
-        # axarr[1].set_title("dosG")
-        # axarr[2].set_title("dosQM")
-        # plt.show()
-        cvout.print("Trajectory information and smoothed energies")
-        cvout.print("traj\tvib temp\trot temp\tkin temp\tmean Ekinsm\tmean Epotsm A.U.")
-        for i in range(len(pp.trajs)):
-            cvout.print("{0:s}\t{1:f}\t{2:d}\t{3:f}\t{4:f}\t{5:f}".format(pp.trajs[i], pp.rndtemps[i], pp.rtemps[i], pp.Tclass[i], pp.Ekinsmavr[i] / 627503, pp.Epotsmavr[i] / 627503.0))
-        cvout.print("Heat capacities:")
-        cvout.print("Berens: {0:f} +- {1:f} cal/Kmol".format(np.mean(pp.cv)/4.184, np.std(pp.cv)/4.184))
-        cvout.print("Gauss: {0:f} +- {1:f} cal/Kmol".format(np.mean(pp.cvG)/4.184, np.std(pp.cvG)/4.184))
-        cvout.print("Velocity smoothing: {0:f} +- {1:f} cal/Kmol".format(CV_v, err_v,))
-        cvout.print("Trajectory smoothing: {0:f} +- {1:f} cal/Kmol".format(CV_t, err_t))
-        cvout.print("Based on {0:d} trajectories".format(len(pp.trajs)))
-        cvout.print("{0:d} wrong trajectories".format(len(pp.wrongtrajs)))
-        cvout.print("{0:d} Density of states calculated".format(len(pp.dos)))
+    pp = CV_postProcess(Calc, workdir)
+    for traj in pp.trajs:
+        calcDOS(traj, pp)
+        pp.dosQM.append(hcu.getDosQM(pp.dos[-1], pp.temp))
+        pp.dosG.append(hcu.getDosG(pp.dos[-1], pp.temp))
+        calcSmoothedEnergies(traj, pp)
+        cvout.print("{0:s} processed".format(traj))
+        # break
+    pp.removeWrongTrajs()
+    for traj in pp.trajs:
+        pp.getCV_fromDos(traj)
+    CV_v, err_v = pp.getCV_fromVelSmoothing()
+    CV_t, err_t = pp.getCV_fromTrajSmoothing()
+    #     break
+    # f, axarr = plt.subplots(3)
+    # axarr[0].plot(range(6000), pp.dos[0])
+    # axarr[1].plot(range(6000), pp.dosG[0])
+    # axarr[2].plot(range(6000), pp.dosQM[0])
+    # axarr[0].set_title("dos")
+    # axarr[1].set_title("dosG")
+    # axarr[2].set_title("dosQM")
+    # plt.show()
+    cvout.print("Trajectory information and smoothed energies")
+    cvout.print("traj\tvib temp\trot temp\tkin temp\tmean Ekinsm\tmean Epotsm A.U.")
+    for i in range(len(pp.trajs)):
+        cvout.print("{0:s}\t{1:f}\t{2:d}\t{3:f}\t{4:f}\t{5:f}".format(pp.trajs[i], pp.rndtemps[i], pp.rtemps[i], pp.Tclass[i], pp.Ekinsmavr[i] / 627503, pp.Epotsmavr[i] / 627503.0))
+    cvout.print("Heat capacities:")
+    cvout.print("Berens: {0:f} +- {1:f} cal/Kmol".format(np.mean(pp.cv)/4.184, np.std(pp.cv)/4.184))
+    cvout.print("Gauss: {0:f} +- {1:f} cal/Kmol".format(np.mean(pp.cvG)/4.184, np.std(pp.cvG)/4.184))
+    cvout.print("Velocity smoothing: {0:f} +- {1:f} cal/Kmol".format(CV_v, err_v,))
+    cvout.print("Trajectory smoothing: {0:f} +- {1:f} cal/Kmol".format(CV_t, err_t))
+    cvout.print("Based on {0:d} trajectories".format(len(pp.trajs)))
+    cvout.print("{0:d} wrong trajectories".format(len(pp.wrongtrajs)))
+    cvout.print("{0:d} Density of states calculated".format(len(pp.dos)))
 
 
 def main():
