@@ -68,6 +68,9 @@ NCalc| (int) | *number of Gaussian calculations allowed to be run at one time*
 rotation| (bool) | *include or exclude rotation*
 end| (int) | *value*
 
+Note, that even though the number of independent trajectories can be one,
+for the linear regression and determination of heat capacity it must be at least two.
+
 *value* can be:
 1. create velocity generating inputs.
 2. run velocity generating inputs.

@@ -1171,6 +1171,7 @@ class Calculation():
                 tempanswer = input("Please give the temperature for the MD simulations in Kelvin.\n") or temp
             except KeyboardInterrupt:
                 print("\nExiting GSTA")
+                sys.exit(0)
             try:
                 temp = np.float64(tempanswer)
                 if temp < 0.0:

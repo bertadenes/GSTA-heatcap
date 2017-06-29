@@ -37,7 +37,6 @@ def completer(text, state):
     except IndexError:
         return None
 
-
 readline.set_completer(completer)
 readline.parse_and_bind("tab: complete")
 
