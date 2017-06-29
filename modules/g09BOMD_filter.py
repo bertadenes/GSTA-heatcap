@@ -341,14 +341,16 @@ def g09setup():
     command = "g09"
     try:
         command = input(
-        "Please give the command for executing Gaussian!\nWARNING: output is supposed to be in the same directory as the input.\n")
+            "Please give the command for executing Gaussian!\nWARNING: output is supposed to be in the same directory "
+            "as the input.\n")
     except KeyboardInterrupt:
         print('\n Exiting GSTA')
         sys.exit(0)
     options = ""
     try:
         options = input(
-        "Please give the options you wish to specify after the g09 input\nSubmittion will be done: <command> <input> <options>\n")
+            "Please give the options you wish to specify after the g09 input\nSubmittion will be done: <command> "
+            "<input> <options>\n")
     except KeyboardInterrupt:
         print('\n Exiting GSTA')
         sys.exit(0)
@@ -1104,7 +1106,7 @@ class Calculation():
         while True:
             try:
                 answer = input(
-                "Please choose which approach you wish to follow:\n1 -- perform simulations having energy only on one vibration.\n2 -- perform NVE simulations having equal energy on all vibration.\n")
+                    "Please choose which approach you wish to follow:\n1 -- perform simulations having energy only on one vibration.\n2 -- perform NVE simulations having equal energy on all vibration.\n")
             except KeyboardInterrupt:
                 print('\n Exiting GSTA')
                 sys.exit(0)
@@ -1165,10 +1167,16 @@ class Calculation():
         Not called if given in config file."""
         temp = np.float64(300)
         while True:
-            tempanswer = input("Please give the temperature for the MD simulations in Kelvin.\n") or temp
+            try:
+                tempanswer = input("Please give the temperature for the MD simulations in Kelvin.\n") or temp
+            except KeyboardInterrupt:
+                print("\nExiting GSTA")
             try:
                 temp = np.float64(tempanswer)
-                break
+                if temp < 0.0:
+                    raise ValueError
+                else:
+                    break
             except ValueError:
                 print("Invalid temperature!")
         self.temp = temp
@@ -1205,7 +1213,10 @@ class Calculation():
         while True:
             choose = 0
             choose = input(
-                "\nPlease choose the constants A and B according to the function you wish to smooth:\n1. Type '1' for constants used for filtering energies (this is the default).\n2. Type '2' for constants used for filtering coordinates or velocities.\n3. Type '3' for giving the constants manually.\n4. Type '?' for information about the pre-defined constants.\n") or 1
+                "\nPlease choose the constants A and B according to the function you wish to smooth:\n1. Type '1' for "
+                "constants used for filtering energies (this is the default).\n2. Type '2' for constants used for "
+                "filtering coordinates or velocities.\n3. Type '3' for giving the constants manually.\n4. Type '?' "
+                "for information about the pre-defined constants.\n") or 1
             if choose == 1:
                 break
             elif choose == 2:
@@ -1241,7 +1252,8 @@ class Calculation():
         while True:
             answer = 0
             print(
-                "1 -- create velocity generating inputs.\n2 -- run velocity generating inputs.\n3 -- create BOMD inputs.\n4 -- run BOMD inputs.\n5 -- process BOMD data.")
+                "1 -- create velocity generating inputs.\n2 -- run velocity generating inputs.\n3 -- create BOMD "
+                "inputs.\n4 -- run BOMD inputs.\n5 -- process BOMD data.(Not stable yet)")
             try:
                 answer = int(input("\n"))
             except KeyboardInterrupt:

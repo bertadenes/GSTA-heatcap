@@ -23,6 +23,7 @@ import numpy as np
 import modules.Heatcapacity_subproc as hcs
 import modules.heat_cap_output as hcout
 
+
 def main():
     BOMDDONE = VELGENDONE = VELGENWRONG = MOVE= False
     parser = argparse.ArgumentParser()
@@ -49,7 +50,7 @@ def main():
         try:
             filepath = input("\n") or filepath
         except KeyboardInterrupt:
-            print("Exiting GSTA")
+            print("\n Exiting GSTA")
             sys.exit(0)
     if os.path.isfile(filepath): 
         if not os.path.isabs(filepath):
@@ -247,6 +248,7 @@ def main():
         if Calc.temp == None: Calc.setTemp()
         #if Calc.type == None: Calc.setType()
         if Calc.end == None: Calc.setEnd()
+        if Calc.NTraj == None: Calc.setNTraj()
         # if Calc.type == 1:
         #     if Calc.maxvib == None: Calc.setMaxVib()
         # elif Calc.type == 2:

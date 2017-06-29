@@ -51,7 +51,15 @@ class CV_output():
 
     def printHeader(self,FH):
         """ Writes the basic software information into the output file."""
-        header = "Heat capacity calculation via trajectory smoothing. Born-Oppenheiemer molecular dynamics performed as implemented into Gaussian software. Check https://www.gaussian.com for details." + os.linesep + os.linesep + "Data process is done as proposed by Madarasz et al. in **insert publication here**" + os.linesep + os.linesep + "The software employs python3 and cclib utilities. The source code is available at https://github.com/bertadenes/GSTA-heatcap.git" + os.linesep + os.linesep + "Developed by" + os.linesep + "D. Berta    berta.denes@ttk.mta.hu*" + os.linesep + "D. Ferenc   ferenc.david@ttk.mta.hu" + os.linesep + "A. Madarasz madarasz.adam@ttk.mta.hu" + os.linesep + "Reported issues regarding the software are highly appreciated." + os.linesep + os.linesep + "The developers acknowledge the help of Vilmos Nagy in programing issues."
+        header = "Heat capacity calculation via trajectory smoothing. Born-Oppenheiemer molecular dynamics performed " \
+                 "as implemented into Gaussian software. Check https://www.gaussian.com for details." + os.linesep + \
+                 os.linesep + "Data process is done as proposed by Madarasz et al. in **insert publication here**" + \
+                 os.linesep + os.linesep + "The software employs python3 and cclib utilities. The source code is " \
+                                           "available at https://github.com/bertadenes/GSTA-heatcap.git" + os.linesep \
+                 + os.linesep + "Developed by" + os.linesep + "D. Berta    berta.denes@ttk.mta.hu*" + os.linesep + \
+                 "D. Ferenc   ferenc.david@ttk.mta.hu" + os.linesep + "A. Madarasz madarasz.adam@ttk.mta.hu" + \
+                 os.linesep + "Reported issues regarding the software are highly appreciated." + os.linesep + \
+                 os.linesep + "The developers acknowledge the help of Vilmos Nagy in programing issues. "
         try:
             FH.write(header)
             FH.write(os.linesep)
@@ -66,7 +74,7 @@ class CV_output():
         return
 
 class CV_postProcess():
-    """ Utility to process a set of MD calculation carried out using entropy. Please note that only applicable for
+    """ Utility to process a set of MD calculation carried out using GSTA-heatcap. Please note that only applicable for
         type = 2 calculations at the moment.
     """
 

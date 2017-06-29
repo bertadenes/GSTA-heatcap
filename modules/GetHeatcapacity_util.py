@@ -17,7 +17,7 @@ NA = const.Avogadro
 
 def autocorr_manual_norm(vel, ts=0.1):
     """
-    Normalized velocity autocorrelation function
+    Function to compute the normalized velocity autocorrelation function
     :param vel: Velocity array
     :param ts: Timstep 
     :return: Normalized velocity autocorrelation function
@@ -264,3 +264,4 @@ def getAvrEnergies(Ep, Eksm, Ek, dt, F, Fsm, coord, coordsm):
     Ek_sm_avr = np.float64(eksm_avr * 6.696044921386073e-28)
     T = np.float64(ek_avr * 2 * 2.80162519510793E-24 / (3 * const.R))
     return Ep_sm_avr, Ek_sm_avr, T
+

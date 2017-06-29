@@ -10,15 +10,36 @@ from functools import partial
 from contextlib import closing
 import warnings
 import numpy as np
+from os import listdir
+from os import getcwd
+
+try:
+    import readline
+except ImportError:
+    pass
 
 warnings.filterwarnings('ignore')
 try:
     import matplotlib.pyplot as plt
-
     plot = True
 except ImportError:
     # print("\nFailed importing matplotlib \nNo plotting, sorry")
     plot = False
+
+# This part is needed for tab autocomplete thing, when code is run interactively
+ldir = listdir(getcwd())
+
+
+def completer(text, state):
+    options = [x for x in ldir if x.startswith(text)]
+    try:
+        return options[state]
+    except IndexError:
+        return None
+
+
+readline.set_completer(completer)
+readline.parse_and_bind("tab: complete")
 
 
 def DOS_from_velocity(path_pos, path_neg, calcdos=True, plot=False, temp=None):
