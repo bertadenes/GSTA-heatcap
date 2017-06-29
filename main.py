@@ -46,7 +46,11 @@ def main():
     else:
         filepath = None
         print("Please give the path to the output!")
-        filepath = input("\n") or filepath
+        try:
+            filepath = input("\n") or filepath
+        except KeyboardInterrupt:
+            print("Exiting GSTA")
+            sys.exit(0)
     if os.path.isfile(filepath): 
         if not os.path.isabs(filepath):
             filepath = os.path.realpath(filepath)
@@ -162,11 +166,11 @@ def main():
                     Calc.processConfig(args.config)
                     if Calc.end <= 2:
                         logging.warn("PID"+str(os.getpid())+": Session was originally set ending at point "+str(Calc.end)+". In order to continue, please specify a config file with end>2.")
-                        logging.info("PID"+str(os.getpid())+": Exiting entropy\n")
+                        logging.info("PID" + str(os.getpid()) + ": Exiting GSTA\n")
                         sys.exit(0)
                 else:
                     logging.warn("PID"+str(os.getpid())+": Session was originally set ending at point "+str(Calc.end)+". In order to continue, please specify a config file with end>2.")
-                    logging.info("PID"+str(os.getpid())+": Exiting entropy\n")
+                    logging.info("PID" + str(os.getpid()) + ": Exiting GSTA\n")
                     sys.exit(0)
             if Calc.end > 2:
                 if "_velgen." in filepath:
@@ -181,7 +185,7 @@ def main():
         Calc.save(lock=FL)
         if Calc.end > 3 and Calc.isVELGENDONE():
             g.runMD(Calc)
-        logging.info("PID"+str(os.getpid())+": Exiting entropy\n")
+        logging.info("PID" + str(os.getpid()) + ": Exiting GSTA\n")
         sys.exit(0)
 
     elif MOVE:
@@ -224,7 +228,7 @@ def main():
         if Calc.isMOVED():
             g.runVelGen(Calc)
 
-        logging.info("PID" + str(os.getpid()) + ": Exiting entropy\n")
+        logging.info("PID" + str(os.getpid()) + ": Exiting GSTA\n")
         sys.exit(0)
 
     else:

@@ -11,7 +11,7 @@ from subprocess import Popen
 from daemon.g09calcHandler import g09MoveHandler
 from daemon.g09calcHandler import g09velgenHandler
 from daemon.g09calcHandler import g09MDHandler
-import cclib #parsing gaussian output
+import cclib  # parsing gaussian output
 
 try:
     import modules.filelock as fl
@@ -22,53 +22,6 @@ try:
 except ImportError:
     pass
 """Output process"""
-
-
-def getNAtoms(filePath):
-    """Reads the number of atoms in the system, returns with it as an integer.
-    Args:
-        filePath (str): The path to the file to process.
-    Returns:
-        int: Number of atoms in the system.
-    """
-    with open(filePath, 'r') as outfile:
-        for line in outfile:
-            if "NAtoms" in line:
-                NAtoms = int(line.split()[line.split().index("NAtoms=") + 1])
-                break
-    return NAtoms
-
-
-def getNTraj(filePath):
-    """Reads the number of started trajectories in the calculations, returns it as an integer.
-    Args:
-        filePath (str): The path to the file to process.
-    Returns:
-        int: Number of trajectories in the calculation.
-    """
-    NTraj = int(0)
-    with open(filePath, 'r') as outfile:
-        for line in outfile:
-            if "******** Start new trajectory calculation ********" in line:
-                NTraj += 1
-    return NTraj
-
-
-def getNSteps(filePath):
-    """Reads the number steps done, returns it as an integer. Assumes same steps were done in
-    all trajectories.
-    Args:
-        filePath (str): The path to the file to process.
-    Returns:
-        int: Number of steps taken.
-    """
-    NSteps = int(0)
-    with open(filePath, 'r') as outfile:
-        for line in outfile:
-            if "Summary information for step" in line:
-                if int(line.split(4)) - 1 > NSteps:
-                    NSteps = int(line.split(4)) - 1
-    return NSteps
 
 
 def getCalcInfo(filePath):
@@ -90,7 +43,7 @@ def getCalcInfo(filePath):
     with open(filePath, 'r') as outfile:
         for line in outfile:
             if "NAtoms" in line and NAtoms == 0:
-                NAtoms = int(line.split()[line.split().index("NAtoms=")+1])
+                NAtoms = int(line.split()[line.split().index("NAtoms=") + 1])
             elif "Total Number of Trajectories" in line:
                 NTraj += int(line.split()[-1])
             elif "Max. points for each Traj." in line and NSteps == 0:
@@ -173,7 +126,8 @@ def processTrajSummary(traj):
                 time[index].append(np.float64(traj[index][i].split()[0]))
                 Ekin[index].append(np.float64(traj[index][i].split()[1]))
                 Epot[index].append(np.float64(traj[index][i].split()[2]))
-            if "Time (fs)   Kinetic (au)   Potent (au)   Delta E (au)     Delta A (h-bar)" in traj[index][i]: read = True
+            if "Time (fs)   Kinetic (au)   Potent (au)   Delta E (au)     Delta A (h-bar)" in traj[index][
+                i]: read = True
     timeArray = np.array(time, dtype=np.float64)
     EkinArray = np.array(Ekin, dtype=np.float64)
     EpotArray = np.array(Epot, dtype=np.float64)
@@ -222,7 +176,7 @@ def getCoords(filePath):
     #     print("Coordinates of",len(coords[i][0]),"atoms were read at",len(coords[i]),"steps for trajectory",i+1,".")
 
     return coords
-    #return 0.52917724900001*coords #get them in angstrom
+    # return 0.52917724900001*coords #get them in angstrom
 
 
 def getVel(filePath):
@@ -254,7 +208,7 @@ def getVel(filePath):
                 insum = True
             elif "MW cartesian velocity: (sqrt(amu)*bohr/sec)" in line:
                 readvel = True
-            elif "Predicted information for step" in line or "Normal termination" in line:#check next step or next link
+            elif "Predicted information for step" in line or "Normal termination" in line:  # check next step or next link
                 insum = False
             elif "I=" not in line:
                 readvel = False
@@ -268,24 +222,26 @@ def getVel(filePath):
             len(vel[i])) + " steps for trajectory " + str(i + 1) + ".")
     return vel
 
+
 def getF(filePath):
     """
+    Gets forces at each step of BOMD calculation from G09 output.
     Args:
         filePath (str): The path to the file to process.
     Returns:
-        numpy 4-dimensional array of doubles: velocities indexed as follows:
+        numpy 4-dimensional array of doubles: forces indexed as follows:
         - First index is for trajectories.
         - Second index is for the steps.
         - Third index is for the atom.
         - Fourth index is for the Cartesian component, 0,1,2 for F_x,F_y,F_z, respectively.
     """
-    Na,Nt,Ns,dt = getCalcInfo(filePath)
-    force = np.empty(shape=(Nt,Ns,Na,3)) #memory allocation
+    Na, Nt, Ns, dt = getCalcInfo(filePath)
+    force = np.empty(shape=(Nt, Ns, Na, 3))  # memory allocation
     trajIndex = 0
     read = False
     t = -1
     finishedTraj1 = False
-    with open(filePath,'r') as outfile:
+    with open(filePath, 'r') as outfile:
         for line in outfile:
             if "******** Start new trajectory calculation ********" in line:
                 if finishedTraj1:
@@ -305,6 +261,7 @@ def getF(filePath):
                 t += 1
                 atomIndex = 0
     return force
+
 
 def getEpot(filePath):
     """Reads the potential energies in hartrees after SCF cycles done.
@@ -382,11 +339,19 @@ def g09setup():
     """
     print("Some information about your Gaussian copy is needed.")
     command = "g09"
-    command = input(
+    try:
+        command = input(
         "Please give the command for executing Gaussian!\nWARNING: output is supposed to be in the same directory as the input.\n")
+    except KeyboardInterrupt:
+        print('\n Exiting GSTA')
+        sys.exit(0)
     options = ""
-    options = input(
+    try:
+        options = input(
         "Please give the options you wish to specify after the g09 input\nSubmittion will be done: <command> <input> <options>\n")
+    except KeyboardInterrupt:
+        print('\n Exiting GSTA')
+        sys.exit(0)
     return command, options
 
 
@@ -407,6 +372,7 @@ def genRndTemp(temp, Natoms):
     df = int(np.sqrt(Natoms))
     rndTemp = np.divide(np.random.chisquare(df * 3) * temp, df * 3)
     return rndTemp
+
 
 def createMoveInputs(Calc):
     """Creats the chosen number of inputs at velgen subdirectory.
@@ -436,11 +402,12 @@ def createMoveInputs(Calc):
         inp = Calc.freqfile.split('.')[0] + "_traj" + str(i + 1) + ".gjf" % (Calc.temp)
         rand = np.random.randint(low=1, high=400000, dtype=np.int64)
         rndtemp = genRndTemp(Calc.temp, Calc.mol.natom)
-        com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=0) IOp(1/44=" + str(rand) + ")"
+        com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(
+            len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=0) IOp(1/44=" + str(rand) + ")"
         title = "Trajectory " + str(i + 1) + " for " + Calc.freqfile.split('.')[0]
         energy = np.float64(const.R * (rndtemp) * 0.000239005736137668)
         Calc.addSubCalc(inp)
-        #Calc.SubCalcs[-1].name = "traj"+str(i)
+        # Calc.SubCalcs[-1].name = "traj"+str(i)
         Calc.SubCalcs[-1].rand = rand
         Calc.SubCalcs[-1].rndtemp = rndtemp
         Calc.SubCalcs[-1].vibFreq = Calc.mol.vibfreqs[0]
@@ -453,8 +420,8 @@ def createMoveInputs(Calc):
             inputfile.write(str(Calc.mol.charge) + ' ' + str(Calc.mol.mult) + '\n')
             for j in range(len(Calc.mol.atomnos)):
                 inputfile.write("%s   %f   %f   %f\n" % (
-                elements[Calc.mol.atomnos[j]], Calc.mol.atomcoords[-1][j][0], Calc.mol.atomcoords[-1][j][1],
-                Calc.mol.atomcoords[-1][j][2]))
+                    elements[Calc.mol.atomnos[j]], Calc.mol.atomcoords[-1][j][0], Calc.mol.atomcoords[-1][j][1],
+                    Calc.mol.atomcoords[-1][j][2]))
             inputfile.write("\n1\n")
             for j in range(len(Calc.mol.atomnos)):
                 inputfile.write(str(j + 1) + ' ')
@@ -486,18 +453,21 @@ def createMovedVelInputs(SubCalc):
                 103: 'Lr', 104: 'Rf', 105: 'Db', 106: 'Sg', 107: 'Bh', 108: 'Hs', 109: 'Mt', 110: 'Ds', 111: 'Rg',
                 112: 'Cn'}
     dirpath = SubCalc.workdir
-    inp = SubCalc.freqfile.split('.')[0] + '_' + SubCalc.name  + "_velgen.gjf"
+    inp = SubCalc.freqfile.split('.')[0] + '_' + SubCalc.name + "_velgen.gjf"
     SubCalc.velgenInput = inp
     rtemp = '0'
     SubCalc.rtemp = int(rtemp)
-    com = " BOMD(update=1000,StepSize=1,MaxPoints=2,Sample=Fixed,NSample=" + str(len(SubCalc.mol.modeEkin)) + ",NTraj=1,rtemp=" + rtemp + ") nosymmetry"
+    com = " BOMD(update=1000,StepSize=1,MaxPoints=2,Sample=Fixed,NSample=" + str(
+        len(SubCalc.mol.modeEkin)) + ",NTraj=1,rtemp=" + rtemp + ") nosymmetry"
     title = SubCalc.name + " for " + SubCalc.freqfile.split('.')[0]
     with open(dirpath + os.sep + inp, 'w') as inputfile:
         inputfile.write("#p " + SubCalc.mol.method + '/' + SubCalc.mol.basis + com + "\n\n")
         inputfile.write(title + "\n\n")
         inputfile.write(str(SubCalc.mol.charge) + ' ' + str(SubCalc.mol.mult) + '\n')
         for j in range(len(SubCalc.mol.atomnos)):
-            inputfile.write("%s   %f   %f   %f\n" % (elements[SubCalc.mol.atomnos[j]], SubCalc.mol.atomcoords[-1][j][0], SubCalc.mol.atomcoords[-1][j][1],SubCalc.mol.atomcoords[-1][j][2]))
+            inputfile.write("%s   %f   %f   %f\n" % (
+                elements[SubCalc.mol.atomnos[j]], SubCalc.mol.atomcoords[-1][j][0], SubCalc.mol.atomcoords[-1][j][1],
+                SubCalc.mol.atomcoords[-1][j][2]))
         inputfile.write("\n1\n")
         for j in range(len(SubCalc.mol.atomnos)):
             inputfile.write(str(j + 1) + ' ')
@@ -505,8 +475,11 @@ def createMovedVelInputs(SubCalc):
         for j in range(len(SubCalc.mol.modeEkin)):
             inputfile.write(str(j + 1) + ' ' + str(SubCalc.mol.modeEkin[j]) + ' ')
         inputfile.write('\n\n')
-    logging.info("PID" + str(os.getpid()) + ": one velgen input was generated in the " + dirpath + " directory for " + str(SubCalc.name))
+    logging.info(
+        "PID" + str(os.getpid()) + ": one velgen input was generated in the " + dirpath + " directory for " + str(
+            SubCalc.name))
     return
+
 
 def createVelInputs(Calc):
     """Creates the chosen number of inputs at velgen subdirectory.
@@ -524,20 +497,32 @@ def createVelInputs(Calc):
     PES at x+5 K, but not the other way around.
     It cannot be done for NVE sampling thus 3 inputs created (T-5,T,T+5) with same random seed.
     """
-    #define elements
-    elements = {1:'H',2:'He',3:'Li',4:'Be',5:'B',6:'C',7:'N',8:'O',9:'F',10:'Ne',11:'Na',12:'Mg',13:'Al',14:'Si',15:'P',16:'S',17:'Cl',18:'Ar',19:'K',20:'Ca',21:'Sc',22:'Ti',23:'V',24:'Cr',25:'Mn',26:'Fe',27:'Co',28:'Ni',29:'Cu',30:'Zn',31:'Ga',32:'Ge',33:'As',34:'Se',35:'Br',36:'Kr',37:'Rb',38:'Sr',39:'Y',40:'Zr',41:'Nb',42:'Mo',43:'Tc',44:'Ru',45:'Rh',46:'Pd',47:'Ag',48:'Cd',49:'In',50:'Sn',51:'Sb',52:'Te',53:'I',54:'Xe',55:'Cs',56:'Ba',57:'La',58:'Ce',59:'Pr',60:'Nd',61:'Pm',62:'Sm',63:'Eu',64:'Gd',65:'Tb',66:'Dy',67:'Ho',68:'Er',69:'Tm',70:'Yb',71:'Lu',72:'Hf',73:'Ta',74:'W',75:'Re',76:'Os',77:'Ir',78:'Pt',79:'Au',80:'Hg',81:'Tl',82:'Pb',83:'Bi',84:'Po',85:'At',86:'Rn',87:'Fr',88:'Ra',89:'Ac',90:'Th',91:'Pa',92:'U',93:'Np',94:'Pu',95:'Am',96:'Cm',97:'Bk',98:'Cf',99:'Es',100:'Fm',101:'Md',102:'No',103:'Lr',104:'Rf',105:'Db',106:'Sg',107:'Bh',108:'Hs',109:'Mt',110:'Ds',111:'Rg',112:'Cn'}
-    dirpath = os.path.join(Calc.workdir,"velgen")
+    # define elements
+    elements = {1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne', 11: 'Na', 12: 'Mg',
+                13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar', 19: 'K', 20: 'Ca', 21: 'Sc', 22: 'Ti',
+                23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe', 27: 'Co', 28: 'Ni', 29: 'Cu', 30: 'Zn', 31: 'Ga', 32: 'Ge',
+                33: 'As', 34: 'Se', 35: 'Br', 36: 'Kr', 37: 'Rb', 38: 'Sr', 39: 'Y', 40: 'Zr', 41: 'Nb', 42: 'Mo',
+                43: 'Tc', 44: 'Ru', 45: 'Rh', 46: 'Pd', 47: 'Ag', 48: 'Cd', 49: 'In', 50: 'Sn', 51: 'Sb', 52: 'Te',
+                53: 'I', 54: 'Xe', 55: 'Cs', 56: 'Ba', 57: 'La', 58: 'Ce', 59: 'Pr', 60: 'Nd', 61: 'Pm', 62: 'Sm',
+                63: 'Eu', 64: 'Gd', 65: 'Tb', 66: 'Dy', 67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb', 71: 'Lu', 72: 'Hf',
+                73: 'Ta', 74: 'W', 75: 'Re', 76: 'Os', 77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg', 81: 'Tl', 82: 'Pb',
+                83: 'Bi', 84: 'Po', 85: 'At', 86: 'Rn', 87: 'Fr', 88: 'Ra', 89: 'Ac', 90: 'Th', 91: 'Pa', 92: 'U',
+                93: 'Np', 94: 'Pu', 95: 'Am', 96: 'Cm', 97: 'Bk', 98: 'Cf', 99: 'Es', 100: 'Fm', 101: 'Md', 102: 'No',
+                103: 'Lr', 104: 'Rf', 105: 'Db', 106: 'Sg', 107: 'Bh', 108: 'Hs', 109: 'Mt', 110: 'Ds', 111: 'Rg',
+                112: 'Cn'}
+    dirpath = os.path.join(Calc.workdir, "velgen")
     Calc.setVelGenDir(dirpath)
     if not os.path.exists(dirpath): os.makedirs(dirpath)
     N = Calc.NTraj
     for i in range(N):
-        inp = Calc.freqfile.split('.')[0]+"_traj"+str(i+1)+".gjf"%(Calc.temp)
-        rand = np.random.randint(low=1,high=400000,dtype=np.int64)
-        rndtemp = genRndTemp(Calc.temp,Calc.mol.natom)
+        inp = Calc.freqfile.split('.')[0] + "_traj" + str(i + 1) + ".gjf" % (Calc.temp)
+        rand = np.random.randint(low=1, high=400000, dtype=np.int64)
+        rndtemp = genRndTemp(Calc.temp, Calc.mol.natom)
         rtemp = str(int(rndtemp))
-        com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp="+rtemp+") IOp(1/44=" + str(rand) + ")"
-        title = "Trajectory "+str(i+1)+" for "+Calc.freqfile.split('.')[0]
-        energy = np.float64(int(rndtemp)*0.001987203611)
+        com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(
+            len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=" + rtemp + ") IOp(1/44=" + str(rand) + ")"
+        title = "Trajectory " + str(i + 1) + " for " + Calc.freqfile.split('.')[0]
+        energy = np.float64(int(rndtemp) * 0.001987203611)
         Calc.addSubCalc(inp)
         Calc.SubCalcs[-1].rand = rand
         Calc.SubCalcs[-1].rtemp = int(rndtemp)
@@ -546,23 +531,26 @@ def createVelInputs(Calc):
 
         Calc.addVelGenInput(inp)
 
-        with open(dirpath+os.sep+inp,'w') as inputfile:
-            inputfile.write("%chk="+inp.split('.')[0]+".chk\n\n")
-            inputfile.write("#p "+Calc.mol.method+'/'+Calc.mol.basis+com+"\n\n")
-            inputfile.write(title+"\n\n")
-            inputfile.write(str(Calc.mol.charge)+' '+str(Calc.mol.mult)+'\n')
+        with open(dirpath + os.sep + inp, 'w') as inputfile:
+            inputfile.write("%chk=" + inp.split('.')[0] + ".chk\n\n")
+            inputfile.write("#p " + Calc.mol.method + '/' + Calc.mol.basis + com + "\n\n")
+            inputfile.write(title + "\n\n")
+            inputfile.write(str(Calc.mol.charge) + ' ' + str(Calc.mol.mult) + '\n')
             for j in range(len(Calc.mol.atomnos)):
-                inputfile.write("%s   %f   %f   %f\n" % (elements[Calc.mol.atomnos[j]],Calc.mol.atomcoords[-1][j][0],Calc.mol.atomcoords[-1][j][1],Calc.mol.atomcoords[-1][j][2]))
+                inputfile.write("%s   %f   %f   %f\n" % (
+                    elements[Calc.mol.atomnos[j]], Calc.mol.atomcoords[-1][j][0], Calc.mol.atomcoords[-1][j][1],
+                    Calc.mol.atomcoords[-1][j][2]))
             inputfile.write("\n1\n")
             for j in range(len(Calc.mol.atomnos)):
                 inputfile.write(str(j + 1) + ' ')
             inputfile.write('\n')
             for j in range(len(Calc.mol.vibfreqs)):
-                inputfile.write(str(j+1)+' '+str(energy)+' ')
+                inputfile.write(str(j + 1) + ' ' + str(energy) + ' ')
             inputfile.write("\n\n")
 
     logging.info("PID" + str(os.getpid()) + ": " + str(N) + " inputs were generated in the " + dirpath + " directory.")
     return
+
 
 def runVelGen(Calc):
     if os.fork():
@@ -572,6 +560,7 @@ def runVelGen(Calc):
     VH.watch()
     return
 
+
 def runMove(Calc):
     if os.fork():
         logging.info("PID" + str(os.getpid()) + ": Exiting entropy\n")
@@ -579,6 +568,7 @@ def runMove(Calc):
     MH = g09MoveHandler(Calc)
     MH.watch()
     return
+
 
 def createMDInput(subCalc):
     """Creates pair of inputs for BOMD simulation either along one certain vibration in both
@@ -607,11 +597,11 @@ def createMDInput(subCalc):
     title = "NVE sampling seed " + str(subCalc.rand) + " T = " + str(int(subCalc.rndtemp))
     stepsize = int(10E14 / (subCalc.vibFreq * 1199169832))
 
-    #set to 0.1 fs
+    # set to 0.1 fs
     stepsize = 1000
     d = getDecay(subCalc.temp)
-    MP = str(int(d/(stepsize*10E-20))+201)
-    #set to sum up to 1 ps
+    MP = str(int(d / (stepsize * 10E-20)) + 201)
+    # set to sum up to 1 ps
     MP = str(5000)
     subCalc.MP = MP
     if subCalc.rot:
@@ -620,15 +610,16 @@ def createMDInput(subCalc):
         rtemp = str(0)
     dirpath = subCalc.workdir
     if not os.path.exists(dirpath): os.makedirs(dirpath)
-    with open(dirpath+os.sep+subCalc.inputname.split('.')[0]+"_MD_pos.gjf",'w') as inputfile:
-        subCalc.MDinput1 = subCalc.inputname.split('.')[0]+"_MD_pos.gjf"
-        inputfile.write("#p "+subCalc.mol.method+'/'+subCalc.mol.basis+" BOMD(gradientonly,StepSize="+str(stepsize)+",MaxPoints="+MP+",ReadMWVelocity,rtemp="+rtemp+") nosymmetry\n\n")
-        inputfile.write(title+"\n\n")
-        inputfile.write(str(subCalc.mol.charge)+' '+str(subCalc.mol.mult)+'\n')
+    with open(dirpath + os.sep + subCalc.inputname.split('.')[0] + "_MD_pos.gjf", 'w') as inputfile:
+        subCalc.MDinput1 = subCalc.inputname.split('.')[0] + "_MD_pos.gjf"
+        inputfile.write("#p " + subCalc.mol.method + '/' + subCalc.mol.basis + " BOMD(gradientonly,StepSize=" + str(
+            stepsize) + ",MaxPoints=" + MP + ",ReadMWVelocity,rtemp=" + rtemp + ") nosymmetry\n\n")
+        inputfile.write(title + "\n\n")
+        inputfile.write(str(subCalc.mol.charge) + ' ' + str(subCalc.mol.mult) + '\n')
         for j in range(len(subCalc.mol.atomnos)):
             inputfile.write("%s   %f   %f   %f\n" % (
-            elements[subCalc.mol.atomnos[j]], subCalc.mol.atomcoords[-1][j][0], subCalc.mol.atomcoords[-1][j][1],
-            subCalc.mol.atomcoords[-1][j][2]))
+                elements[subCalc.mol.atomnos[j]], subCalc.mol.atomcoords[-1][j][0], subCalc.mol.atomcoords[-1][j][1],
+                subCalc.mol.atomcoords[-1][j][2]))
         inputfile.write("\n1\n")
         for j in range(len(subCalc.mol.atomnos)):
             inputfile.write(str(j + 1) + ' ')
@@ -638,15 +629,16 @@ def createMDInput(subCalc):
                 str(subCalc.mol.vel[-1][-1][j][0]) + "   " + str(subCalc.mol.vel[-1][-1][j][1]) + "   " + str(
                     subCalc.mol.vel[-1][-1][j][2]) + "\n")
         inputfile.write('\n')
-    with open(dirpath+os.sep+subCalc.inputname.split('.')[0]+"_MD_neg.gjf",'w') as inputfile:
-        subCalc.MDinput2 = subCalc.inputname.split('.')[0]+"_MD_neg.gjf"
-        inputfile.write("#p "+subCalc.mol.method+'/'+subCalc.mol.basis+" BOMD(gradientonly,StepSize="+str(stepsize)+",MaxPoints="+MP+",ReadMWVelocity,rtemp="+rtemp+") nosymmetry\n\n")
-        inputfile.write(title+"\n\n")
-        inputfile.write(str(subCalc.mol.charge)+' '+str(subCalc.mol.mult)+'\n')
+    with open(dirpath + os.sep + subCalc.inputname.split('.')[0] + "_MD_neg.gjf", 'w') as inputfile:
+        subCalc.MDinput2 = subCalc.inputname.split('.')[0] + "_MD_neg.gjf"
+        inputfile.write("#p " + subCalc.mol.method + '/' + subCalc.mol.basis + " BOMD(gradientonly,StepSize=" + str(
+            stepsize) + ",MaxPoints=" + MP + ",ReadMWVelocity,rtemp=" + rtemp + ") nosymmetry\n\n")
+        inputfile.write(title + "\n\n")
+        inputfile.write(str(subCalc.mol.charge) + ' ' + str(subCalc.mol.mult) + '\n')
         for j in range(len(subCalc.mol.atomnos)):
             inputfile.write("%s   %f   %f   %f\n" % (
-            elements[subCalc.mol.atomnos[j]], subCalc.mol.atomcoords[-1][j][0], subCalc.mol.atomcoords[-1][j][1],
-            subCalc.mol.atomcoords[-1][j][2]))
+                elements[subCalc.mol.atomnos[j]], subCalc.mol.atomcoords[-1][j][0], subCalc.mol.atomcoords[-1][j][1],
+                subCalc.mol.atomcoords[-1][j][2]))
         inputfile.write("\n1\n")
         for j in range(len(subCalc.mol.atomnos)):
             inputfile.write(str(j + 1) + ' ')
@@ -659,6 +651,7 @@ def createMDInput(subCalc):
     logging.info("PID" + str(os.getpid()) + ": 2 inputs were generated in " + dirpath + " for " + subCalc.name + ".")
     return
 
+
 def runMD(Calc: object) -> object:
     if os.fork():
         logging.info("PID" + str(os.getpid()) + ": Exiting entropy\n")
@@ -667,7 +660,9 @@ def runMD(Calc: object) -> object:
     MH.watch()
     return
 
+
 """data process"""
+
 
 def time(SC):
     """Gets the time from a pair of BOMD calculations. As the two calculations had identical
@@ -743,83 +738,6 @@ def getDecay(Tf, b=None):
     d = np.sqrt(np.divide(np.log(np.float64(1e-8)), B))
     return d
 
-def GetForces(path):
-    """
-    This function extracts the forces from a Gaussian BOMD output file,
-    for each trajectory, step and atom in Descart coordinates
-    note: uses getCalcInfo(filePath) function from g09BOMD_filter.py module
-    Args:
-        path: Requires the path for the Gaussian output file
-
-    Returns: Numpy four dimensional array of forces
-        All indeces start from zero
-        [trajectory index] [Step index] [Atom index] [x,y,z coordinates]
-    """
-    file = open(path, "r")
-    j = 1
-    l = -1
-    m = -2
-    start, stop = 0, 0
-    Na, Nt, Ns, dt = getCalcInfo(path)
-    forces = np.empty(shape=(Nt, Ns, Na, 3))
-    for line in file:
-        j += 1
-        if "******** Start new trajectory calculation ********" in line:
-            l += 1
-            m = -2
-        elif "Center     Atomic                   Forces (Hartrees/Bohr)" in line:
-            m += 1
-            start = j + 3
-            stop = j + 2 + Na
-            k = 0
-        elif j >= start and j <= stop:
-            forces[l][m][k][0] = line.split()[2]
-            forces[l][m][k][1] = line.split()[3]
-            forces[l][m][k][2] = line.split()[4]
-            k += 1
-    file.close()
-    return forces
-
-
-def GetForces2(path):
-    """
-    This function extracts the forces from a Gaussian BOMD output file,
-    for each trajectory, step and atom in Descart coordinates
-    note: uses getCalcInfo(filePath) function from g09BOMD_filter.py module
-    Args:
-        path: Requires the path for the Gaussian output file
-
-    Returns: Numpy four dimensional array of forces
-        All indeces start from zero
-        [trajectory index] [Step index] [Atom index] [x,y,z coordinates]
-    """
-    file = open(path, "r")
-    Na, Nt, Ns, dt = getCalcInfo(path)
-    forces = np.empty(shape=(Nt, Ns, Na, 3))
-    l = -1
-    m = -1
-    k = 0
-    j = 0
-    start, stop = 0, 0
-    read = False
-    for line in file:
-        j += 1
-        if "******** Start new trajectory calculation ********" in line:
-            l += 1
-        elif "Center     Atomic                   Forces (Hartrees/Bohr)" in line:
-            m += 1
-            start = j + 3
-            stop = start + Na - 1
-        elif j >= start and j <= stop:
-            print(line)
-            print(j)
-            forces[l][m][k][0] = line.split()[2]
-            forces[l][m][k][1] = line.split()[3]
-            forces[l][m][k][2] = line.split()[4]
-            k += 1
-    file.close()
-
-    return forces
 
 def getAtMass(path):
     """
@@ -862,10 +780,12 @@ def getTemp(path):
             break
     return float(T)
 
+
 class NonSmoothableTraj(Exception):
     pass
 
-def smoothFn_fixstep(fn,step,Tf,target=1,a=None,b=None):
+
+def smoothFn_fixstep(fn, step, Tf, target=1, a=None, b=None):
     kB = const.k
     h = const.h
     pi = const.pi
@@ -879,16 +799,19 @@ def smoothFn_fixstep(fn,step,Tf,target=1,a=None,b=None):
         B = np.float64((-8 * kB ** 2 * Tf ** 2 * pi ** 3) / (h ** 2))
     else:
         A, B = a, b
-    smfn = arg = np.empty(shape=len(fn),dtype=np.float64)
+    smfn = arg = np.empty(shape=len(fn), dtype=np.float64)
     for i in range(len(arg)):
-        arg[i] = i*step
+        arg[i] = i * step
     G = np.multiply(A, np.exp(np.multiply(np.square(arg), B)))
-    smfn[0] = integrate.simps(np.multiply(fn,G),dx=step)/integrate.simps(G,dx=step)
-    for i in range(1,len(fn)):
-        smfn[i] = integrate.simps(np.multiply(fn[i:],G[:-i]),dx=step)/integrate.simps(G[:-i],dx=step) + integrate.simps(np.multiply(fn[:i],np.flipud(G)[-i-1:-1]),dx=step)/integrate.simps(np.flipud(G)[-i-1:-1],dx=step)
+    smfn[0] = integrate.simps(np.multiply(fn, G), dx=step) / integrate.simps(G, dx=step)
+    for i in range(1, len(fn)):
+        smfn[i] = integrate.simps(np.multiply(fn[i:], G[:-i]), dx=step) / integrate.simps(G[:-i],
+                                                                                          dx=step) + integrate.simps(
+            np.multiply(fn[:i], np.flipud(G)[-i - 1:-1]), dx=step) / integrate.simps(np.flipud(G)[-i - 1:-1], dx=step)
     return smfn
 
-def smoothFn(fn,arg,Tf,target=1,a=None,b=None):
+
+def smoothFn(fn, arg, Tf, target=1, a=None, b=None):
     """Filter a function along one argument using a Gaussian function *g* with adjustable
     parameters *A* and *B*.
     `g(tau) = A * exp(B * tau^2)`
@@ -922,25 +845,25 @@ def smoothFn(fn,arg,Tf,target=1,a=None,b=None):
         A = np.float64((np.sqrt(8) * pi * kB * Tf) / h)
         B = np.float64((-8 * kB ** 2 * Tf ** 2 * pi ** 3) / (h ** 2))
     else:
-        A,B = a,b
-    
-    #get gaussian decay
-    d = np.sqrt(np.divide(np.log(np.float64(1e-8)),B))
-    ext = int(d/(arg[1]-arg[0]))+1
-    
-    #smarg = arg[ext:-ext]
-    #smarg = np.empty(shape=len(arg)-2*ext,dtype=np.float64)
+        A, B = a, b
+
+    # get gaussian decay
+    d = np.sqrt(np.divide(np.log(np.float64(1e-8)), B))
+    ext = int(d / (arg[1] - arg[0])) + 1
+
+    # smarg = arg[ext:-ext]
+    # smarg = np.empty(shape=len(arg)-2*ext,dtype=np.float64)
     try:
-        smfn = np.empty(shape=len(arg)-2*ext,dtype=np.float64)
+        smfn = np.empty(shape=len(arg) - 2 * ext, dtype=np.float64)
     except ValueError:
         raise NonSmoothableTraj
     for i in range(len(arg)):
-        G = np.multiply(A,np.exp(np.multiply(np.square(np.subtract(arg,arg[i])),B)))
-        fng = np.multiply(fn,G)
-        if i > ext-1 and i < len(arg)-ext:
-            #smarg[i-ext] = arg[i]
-            smfn[i-ext] = integrate.simps(fng,dx=arg[1]-arg[0])
-    #return smarg,smfn
+        G = np.multiply(A, np.exp(np.multiply(np.square(np.subtract(arg, arg[i])), B)))
+        fng = np.multiply(fn, G)
+        if i > ext - 1 and i < len(arg) - ext:
+            # smarg[i-ext] = arg[i]
+            smfn[i - ext] = integrate.simps(fng, dx=arg[1] - arg[0])
+    # return smarg,smfn
     return smfn
 
 
@@ -1012,6 +935,7 @@ def smoothFn_ext(fn, arg, Tf, target=1, a=None, b=None):
             k += 1
     return smfn
 
+
 def smoothFn_old(fn, arg, Tf, target=1, a=None, b=None):
     """g(tau) = A * exp(B * tau^2)"""
     kB = const.k
@@ -1045,34 +969,36 @@ def smoothFn_old(fn, arg, Tf, target=1, a=None, b=None):
         smfn[i] = integral
     return smfn
 
-def smoothFn_windowed(fn,arg,Tf,target=1,a=None,b=None):
+
+def smoothFn_windowed(fn, arg, Tf, target=1, a=None, b=None):
     """g(tau) = A * exp(B * tau^2)"""
     kB = const.k
     h = const.h
     pi = const.pi
-    #Tf = np.float64(300)
-    #try:
+    # Tf = np.float64(300)
+    # try:
     #    Tf = np.float64(input("Please give the temperature for the filtering (Tf)!\n"))
-    #except ValueError:
+    # except ValueError:
     #    print("Please give a valid number!")
-    #Tf read rather as arg for multimple function calls
+    # Tf read rather as arg for multimple function calls
     if target == 1:
-        #for energies
-        A = np.float64((np.sqrt(32)*pi*kB*Tf)/h)
-        B = np.float64((-32*kB**2*Tf**2*pi**3)/(h**2))
+        # for energies
+        A = np.float64((np.sqrt(32) * pi * kB * Tf) / h)
+        B = np.float64((-32 * kB ** 2 * Tf ** 2 * pi ** 3) / (h ** 2))
     elif target == 2:
-        #for coordinates and velocities
-        A = np.float64((np.sqrt(8)*pi*kB*Tf)/h)
-        B = np.float64((-8*kB**2*Tf**2*pi**3)/(h**2))
+        # for coordinates and velocities
+        A = np.float64((np.sqrt(8) * pi * kB * Tf) / h)
+        B = np.float64((-8 * kB ** 2 * Tf ** 2 * pi ** 3) / (h ** 2))
     else:
-        A,B = a,b
-    smfn = np.empty(shape=len(arg),dtype=np.float64)
+        A, B = a, b
+    smfn = np.empty(shape=len(arg), dtype=np.float64)
     for i in range(len(arg)):
-        G = np.multiply(A,np.exp(np.multiply(np.square(np.subtract(arg,arg[i])),B)))
-        norm = integrate.simps(G,dx=arg[1]-arg[0])
-        fng = np.multiply(fn,G)
+        G = np.multiply(A, np.exp(np.multiply(np.square(np.subtract(arg, arg[i])), B)))
+        norm = integrate.simps(G, dx=arg[1] - arg[0])
+        fng = np.multiply(fn, G)
         smfn[i] = integrate.simps(fng, dx=arg[1] - arg[0]) / norm
     return smfn
+
 
 # daemon for gentle output monitoring
 # from daemon.g09daemon import g09daemon
@@ -1176,8 +1102,12 @@ class Calculation():
         """Interactive guide to set up calculation approach.
         Not called if given in config file."""
         while True:
-            answer = input(
+            try:
+                answer = input(
                 "Please choose which approach you wish to follow:\n1 -- perform simulations having energy only on one vibration.\n2 -- perform NVE simulations having equal energy on all vibration.\n")
+            except KeyboardInterrupt:
+                print('\n Exiting GSTA')
+                sys.exit(0)
             try:
                 self.type = int(answer)
                 if self.type == 1 or self.type == 2:
@@ -1191,7 +1121,11 @@ class Calculation():
         """Interactive guide to set up the number of independent trajectories.
         Not called if given in config file."""
         while True:
-            answer = input("Please give the number of trajectories you wish to calculate.\n")
+            try:
+                answer = input("Please give the number of trajectories you wish to calculate.\n")
+            except KeyboardInterrupt:
+                print("\n Exiting GSTA")
+                sys.exit(0)
             try:
                 self.NTraj = int(answer)
                 if self.NTraj > 0:
@@ -1252,7 +1186,7 @@ class Calculation():
         """
         self.velGenInputs.append(inp)
 
-    def addMoveInput(self,inp):
+    def addMoveInput(self, inp):
         """Adds an input name to moveInputs.
         Args:
             inp (str): name of the input to be added.
@@ -1308,7 +1242,11 @@ class Calculation():
             answer = 0
             print(
                 "1 -- create velocity generating inputs.\n2 -- run velocity generating inputs.\n3 -- create BOMD inputs.\n4 -- run BOMD inputs.\n5 -- process BOMD data.")
-            answer = int(input("\n"))
+            try:
+                answer = int(input("\n"))
+            except KeyboardInterrupt:
+                print("\n Exiting GSTA")
+                sys.exit(0)
             if answer in range(1, 6):
                 self.end = answer
                 break
@@ -1343,11 +1281,11 @@ class Calculation():
         if "_velgen." in out:
             name = "traj" + out.split("_traj")[1].split('_velgen.')[0]
         else:
-            name = "traj"+out.split("_traj")[1].split('.')[0]
+            name = "traj" + out.split("_traj")[1].split('.')[0]
         for SC in self.SubCalcs:
             if SC.name == name:
                 SC.mol = processg09output(out, isBOMD=True)
-                SC.mol.atomcoords = 0.52917724900001*getCoords(out)[0]
+                SC.mol.atomcoords = 0.52917724900001 * getCoords(out)[0]
                 if "_velgen." in out:
                     SC.VELGENDONE = True
                 elif SC.rot:
@@ -1355,7 +1293,7 @@ class Calculation():
                 else:
                     SC.MOVED = True
                     SC.mol.modeEkin = []
-                    with open(out,'r') as f:
+                    with open(out, 'r') as f:
                         READ = False
                         for line in f:
                             if "Summary of normal mode sampling:" in line:
@@ -1363,16 +1301,18 @@ class Calculation():
                                 break
                             if READ and len(line.split()) == 4:
                                 if line.split()[0] == "Mode":
-                                    SC.mol.modeEkin.append((np.float64(line.split()[3].split('D')[0]+'E'+line.split()[3].split('D')[1])**2)*3.34642001457887E-28)
+                                    SC.mol.modeEkin.append((np.float64(
+                                        line.split()[3].split('D')[0] + 'E' + line.split()[3].split('D')[
+                                            1]) ** 2) * 3.34642001457887E-28)
                             if "MW displacement        MW velocity" in line:
                                 READ = True
                 if SC.VELGENDONE:
-                    SC.workdir = self.workdir+os.sep+"MD"
-                logging.info("PID"+str(os.getpid())+": "+SC.name+" is updated")
+                    SC.workdir = self.workdir + os.sep + "MD"
+                logging.info("PID" + str(os.getpid()) + ": " + SC.name + " is updated")
                 break
         return
 
-    def removeSubCalc(self,out):
+    def removeSubCalc(self, out):
         """Removes the corresponding SubCalc object after a velgen calculation has failed.
                 Args:
                     out (str): absolute path to the terminated calculation.
@@ -1396,7 +1336,8 @@ class Calculation():
             if not SC.VELGENDONE:
                 # print(SC.name,SC.VELGENDONE)
                 return False
-        logging.info("PID" + str(os.getpid()) + ": " + str(len(self.SubCalcs)) + " velgen calculations are done, proceeding to MD.")
+        logging.info("PID" + str(os.getpid()) + ": " + str(
+            len(self.SubCalcs)) + " velgen calculations are done, proceeding to MD.")
         return True
 
     def isMOVED(self):
@@ -1406,10 +1347,11 @@ class Calculation():
         for SC in self.SubCalcs:
             if not SC.MOVED:
                 return False
-        logging.info("PID" + str(os.getpid()) + ": " + str(len(self.SubCalcs)) + " geometry transform calculations are done, proceeding to velgen.")
+        logging.info("PID" + str(os.getpid()) + ": " + str(
+            len(self.SubCalcs)) + " geometry transform calculations are done, proceeding to velgen.")
         return True
 
-    def save(self,lock=None):
+    def save(self, lock=None):
         """Serializes itself to `".CalcFile_"+self.freqfile.split('.')[0]`
         Args:
             lock (Object): a filelock object can be given to release locked files after changes.
@@ -1464,7 +1406,7 @@ class Calculation():
                     CO.close()
                     break
                 except fl.FileLockException:
-                    logging.warn("PID"+str(os.getpid())+": "+CO.name+" lock cannot be acquired.")
+                    logging.warn("PID" + str(os.getpid()) + ": " + CO.name + " lock cannot be acquired.")
                     sys.exit(0)
         else:
             logging.warn("Pickled Calc File not found at " + expectedObjPath)
@@ -1521,20 +1463,32 @@ class Calculation():
         if os.path.isfile(configfile):
             with open(configfile, 'r') as config:
                 for line in config:
-                    if "command" in line.split('=')[0]: self.command = line.split('=')[1].strip()
+                    if "command" in line.split('=')[0]:
+                        self.command = line.split('=')[1].strip()
                     elif "maxvib" in line.split('=')[0]:
-                        if line.split('=')[1].strip() == "all": self.maxvib = len(self.mol.vibfreqs)
-                        else: self.maxvib = int(line.split('=')[1].strip())
-                    elif "temp" in line.split('=')[0]: self.temp = np.float64(line.split('=')[1].strip())
-                    elif "end" in line.split('=')[0]: self.end = int(line.split('=')[1].strip())
-                    elif "target" in line.split('=')[0]: self.target = int(line.split('=')[1].strip())
-                    elif "type" in line.split('=')[0]: self.type = int(line.split('=')[1].strip())
-                    elif "NTraj" in line.split('=')[0]: self.NTraj = int(line.split('=')[1].strip())
-                    elif "options" in line.split('=')[0]: self.options = line.split('=')[1].strip()
-                    elif "NCalc" in line.split('=')[0]: self.NCalc = int(line.split('=')[1].strip())
+                        if line.split('=')[1].strip() == "all":
+                            self.maxvib = len(self.mol.vibfreqs)
+                        else:
+                            self.maxvib = int(line.split('=')[1].strip())
+                    elif "temp" in line.split('=')[0]:
+                        self.temp = np.float64(line.split('=')[1].strip())
+                    elif "end" in line.split('=')[0]:
+                        self.end = int(line.split('=')[1].strip())
+                    elif "target" in line.split('=')[0]:
+                        self.target = int(line.split('=')[1].strip())
+                    elif "type" in line.split('=')[0]:
+                        self.type = int(line.split('=')[1].strip())
+                    elif "NTraj" in line.split('=')[0]:
+                        self.NTraj = int(line.split('=')[1].strip())
+                    elif "options" in line.split('=')[0]:
+                        self.options = line.split('=')[1].strip()
+                    elif "NCalc" in line.split('=')[0]:
+                        self.NCalc = int(line.split('=')[1].strip())
                     elif "rotation" in line.split('=')[0]:
-                        if line.split('=')[1].strip() == "true": self.rot = True
-                        elif line.split('=')[1].strip() == "false": self.rot = False
+                        if line.split('=')[1].strip() == "true":
+                            self.rot = True
+                        elif line.split('=')[1].strip() == "false":
+                            self.rot = False
         else:
             logging.warn("PID" + str(os.getpid()) + ": config file cannot be accessed.")
         return
@@ -1610,7 +1564,7 @@ class SubCalc(Calculation):
         self.BOMDDONE = False
         self.MDpos = False
         self.MDneg = False
-        self.name = "traj"+inp.split("_traj")[1].split('.')[0]
+        self.name = "traj" + inp.split("_traj")[1].split('.')[0]
         self.velgenInput = None
         self.rand = None
         self.MDinput1 = self.MDinput2 = None
