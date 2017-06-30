@@ -1254,7 +1254,8 @@ class Calculation():
             answer = 0
             print(
                 "1 -- create velocity generating inputs.\n2 -- run velocity generating inputs.\n3 -- create BOMD "
-                "inputs.\n4 -- run BOMD inputs.\n5 -- process BOMD data.(Not stable yet)")
+                "inputs.\n4 -- run BOMD inputs.\nProcessing has to be done after simulations are done, by calling "
+                "'GSTA-hc -t pp -f .CalcFile*'")
             try:
                 answer = int(input("\n"))
             except KeyboardInterrupt:
@@ -1265,7 +1266,7 @@ class Calculation():
                 break
             else:
                 print("Please choose from the given options!\n")
-        if answer == 5: self.setTarget()
+        # if answer == 5: self.setTarget() # not stable, taken out
         return
 
     def setAllInfo(self):

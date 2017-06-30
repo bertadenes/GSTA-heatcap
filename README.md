@@ -20,11 +20,33 @@ echo "export PYTHONPATH="${PYTHONPATH}:$HOME/local/lib/python3.5/site-packages""
 ## Help for installation of python packages
 We recommend easy_istall and pip, if you do not have root access.
 ```commandline
-easy_install-3.5 --prefix=$HOME/local cclib-1.5 #should be 1.4 or over
+easy_install-3.5 --prefix=$HOME/local cclib-1.4 #should be 1.4 *
 easy_install-3.5 --prefix=$HOME/local pip
 pip3.5 install --user numpy #make sure to install numpy first
 pip3.5 install --user scipy
 ```
+
+Unfortunately cclib-1.5 does not work properly with our code, so version 1.4 is recommended.
+If you'd still like to use 1.5 you'll need to modify the source code of cclib.
+The simplest (and least elegant) way to do this is to find the modify the following file:
+```commandline
+/home/user/lib/python3.5/site-packages/cclib/parser/gaussianparser.py
+```
+where lines 677 and 678 have to be commented out with a '#' symbol at the beginning of each line.
+The code should look something like this:
+```python
+                    if len(parts) > 4:
+                        energy = parts[2].split('=')[1]
+                        if energy == "":
+                            energy = self.float(parts[3])
+                        else:
+                            energy = self.float(energy)
+                   # Next 2 lines commented by Ferenc D
+                   # if len(self.scftargets[0]) == 3:  # Only add the energy if it's a target criteria
+                   #     newlist.append(energy)
+                    scfvalues.append(newlist)
+```
+
 
 # Installation
 
