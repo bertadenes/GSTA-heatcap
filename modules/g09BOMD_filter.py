@@ -1261,6 +1261,8 @@ class Calculation():
             except KeyboardInterrupt:
                 print("\n Exiting GSTA")
                 sys.exit(0)
+            except ValueError:
+                pass
             if answer in range(1, 6):
                 self.end = answer
                 break
