@@ -1124,7 +1124,8 @@ class Calculation():
         Not called if given in config file."""
         while True:
             try:
-                answer = input("Please give the number of trajectories you wish to calculate.\n")
+                answer = input("Please give the number of trajectories you wish to calculate.\n At least 10 "
+                               "independent trajectories recommended")
             except KeyboardInterrupt:
                 print("\n Exiting GSTA")
                 sys.exit(0)
