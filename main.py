@@ -52,6 +52,9 @@ def main():
         except KeyboardInterrupt:
             print("\n Exiting GSTA")
             sys.exit(0)
+        except TypeError:
+            print("Please give the path to the output!")
+            pass
     if os.path.isfile(filepath): 
         if not os.path.isabs(filepath):
             filepath = os.path.realpath(filepath)

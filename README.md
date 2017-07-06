@@ -28,7 +28,7 @@ pip3.5 install --user scipy
 
 Unfortunately cclib-1.5 does not work properly with our code, so version 1.4 is recommended.
 If you'd still like to use 1.5 you'll need to modify the source code of cclib.
-The simplest (and least elegant) way to do this is to find the modify the following file:
+The simplest (and least elegant) way to do this is to find and modify the following file:
 ```commandline
 /home/user/lib/python3.5/site-packages/cclib/parser/gaussianparser.py
 ```
@@ -41,7 +41,7 @@ The code should look something like this:
                             energy = self.float(parts[3])
                         else:
                             energy = self.float(energy)
-                   # Next 2 lines commented by Ferenc D
+                   # Next 2 lines commented by User
                    # if len(self.scftargets[0]) == 3:  # Only add the energy if it's a target criteria
                    #     newlist.append(energy)
                     scfvalues.append(newlist)

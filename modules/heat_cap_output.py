@@ -67,10 +67,11 @@ class CV_output():
             raise CVoutputException
         return
 
-    def print(self, line):
+    def print(self, line, end=os.linesep):
+        """Method used for printing to out file"""
         with open(self.cvout, 'a') as f:
             f.write(line)
-            f.write(os.linesep)
+            f.write(end)
         return
 
 
@@ -220,10 +221,11 @@ def mp_calcDOS(ppobj):
 
 def postProcess(CF_name):
     """
-    Post processing void function. Writes data to output file.
+    Post processing function. Writes out file.
     :param CF_name: Calculation file name
     :return: none
     """
+    global cvout
     try:
         print("postProcess started")
         CF = open(CF_name, "rb")
@@ -255,22 +257,48 @@ def postProcess(CF_name):
         # axarr[1].set_title("dosG")
         # axarr[2].set_title("dosQM")
         # plt.show()
-        cvout.print("Trajectory information and smoothed energies")
-        cvout.print("traj\tvib temp\trot temp\tkin temp\tmean Ekinsm\tmean Epotsm A.U.")
+        cvout.print('{:*^60}'.format("BOMD information"))
+        cvout.print("Level of theory: {0}/{1}".format(Calc.mol.method, Calc.mol.basis))
+        cvout.print("Number of independent trajectories: {}".format(Calc.NTraj))
+        cvout.print("Temperature of simulation: {} K".format(Calc.temp))
+        if Calc.rot:
+            cvout.print("Rotation included")
+        else:
+            cvout.print("Rotation not included")
+        cvout.print('{:*^60}'.format("Trajectory information and smoothed energies"))
+        head = ["traj", "vib temp", "rot temp", "kin temp", "mean Ekinsm", "mean Epotsm / a.u."]
+        width = 14
+        for h in head:
+            cvout.print('{0:<{width}s}'.format(h, width=width), end='')
+        cvout.print('')
+        # cvout.print("traj\tvib temp\trot temp\tkin temp\tmean Ekinsm\tmean Epotsm A.U.")
         for i in range(len(pp.trajs)):
-            cvout.print("{0:s}\t{1:f}\t{2:d}\t{3:f}\t{4:f}\t{5:f}".format(pp.trajs[i], pp.rndtemps[i], pp.rtemps[i],
-                                                                          pp.Tclass[i], pp.Ekinsmavr[i] / 627503,
-                                                                          pp.Epotsmavr[i] / 627503.0))
+            cvout.print(
+                "{0:<{width}s}{1:<{width}f}{2:<{width}d}{3:<{width}f}{4:<{width}f}{5:<{width}f}".format(pp.trajs[i],
+                                                                                                        pp.rndtemps[i],
+                                                                                                        pp.rtemps[i],
+                                                                                                        pp.Tclass[i],
+                                                                                                        pp.Ekinsmavr[
+                                                                                                            i] / 627503,
+                                                                                                        pp.Epotsmavr[
+                                                                                                            i] / 627503.0,
+                                                                                                        width=width),
+                end='')
+            cvout.print('')
         cvout.print("Heat capacities:")
-        cvout.print("Berens: {0:f} +- {1:f} cal/Kmol".format(np.mean(pp.cv) / 4.184, np.std(pp.cv) / 4.184))
-        cvout.print("Gauss: {0:f} +- {1:f} cal/Kmol".format(np.mean(pp.cvG) / 4.184, np.std(pp.cvG) / 4.184))
-        cvout.print("Velocity smoothing: {0:f} +- {1:f} cal/Kmol".format(CV_v, err_v, ))
-        cvout.print("Trajectory smoothing: {0:f} +- {1:f} cal/Kmol".format(CV_t, err_t))
+        cvout.print("Berens: {0:f} +- {1:f} cal/(K mol)".format(np.mean(pp.cv) / 4.184, np.std(pp.cv) / 4.184))
+        cvout.print("Gauss: {0:f} +- {1:f} cal/(K mol)".format(np.mean(pp.cvG) / 4.184, np.std(pp.cvG) / 4.184))
+        cvout.print("Velocity smoothing: {0:f} +- {1:f} cal/(K mol)".format(CV_v, err_v, ))
+        cvout.print("Trajectory smoothing: {0:f} +- {1:f} cal/(K mol)".format(CV_t, err_t))
         cvout.print("Based on {0:d} trajectories".format(len(pp.trajs)))
         cvout.print("{0:d} wrong trajectories".format(len(pp.wrongtrajs)))
-        cvout.print("{0:d} Density of states calculated".format(len(pp.dos)))
+        cvout.print("{0:d} Density of states calculated\n".format(len(pp.dos)))
     except CV_postProcessException:
         cvout.print("\nDetermination of heat capacity is not possible for less than two trajectories!")
+    except IOError:
+        cvout.print("File not found")
+    except:
+        cvout.print("Unknown error detected")
 
 
 def main():

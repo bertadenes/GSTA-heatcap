@@ -1106,7 +1106,8 @@ class Calculation():
         while True:
             try:
                 answer = input(
-                    "Please choose which approach you wish to follow:\n1 -- perform simulations having energy only on one vibration.\n2 -- perform NVE simulations having equal energy on all vibration.\n")
+                    "Please choose which approach you wish to follow:\n1 -- perform simulations having energy only on "
+                    "one vibration.\n2 -- perform NVE simulations having equal energy on all vibration.\n")
             except KeyboardInterrupt:
                 print('\n Exiting GSTA')
                 sys.exit(0)
@@ -1125,7 +1126,7 @@ class Calculation():
         while True:
             try:
                 answer = input("Please give the number of trajectories you wish to calculate.\n At least 10 "
-                               "independent trajectories recommended")
+                               "independent trajectories recommended \n")
             except KeyboardInterrupt:
                 print("\n Exiting GSTA")
                 sys.exit(0)

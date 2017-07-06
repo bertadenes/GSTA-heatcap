@@ -15,7 +15,10 @@ from os import getcwd
 
 try:
     import readline
+
+    rl = True
 except ImportError:
+    rl = False
     pass
 
 warnings.filterwarnings('ignore')
@@ -37,8 +40,12 @@ def completer(text, state):
     except IndexError:
         return None
 
-readline.set_completer(completer)
-readline.parse_and_bind("tab: complete")
+
+if rl:
+    readline.set_completer(completer)
+    readline.parse_and_bind("tab: complete")
+else:
+    pass
 
 
 def DOS_from_velocity(path_pos, path_neg, calcdos=True, plot=False, temp=None):
