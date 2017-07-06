@@ -229,10 +229,6 @@ def postProcess(CF_name):
     try:
         print("postProcess started")
         CF = open(CF_name, "rb")
-    except IOError:
-        cvout.print("File not found")
-        sys.exit(0)
-    try:
         Calc = pickle.load(CF)
         workdir = os.path.join(os.path.dirname(os.path.realpath(CF_name)), "MD")
         CF.close()
@@ -299,6 +295,8 @@ def postProcess(CF_name):
         cvout.print("{0:d} Density of states calculated\n".format(len(pp.dos)))
     except CV_postProcessException:
         cvout.print("\nDetermination of heat capacity is not possible for less than two trajectories!")
+    except FileNotFoundError:
+        cvout.print("File not found")
     except:
         cvout.print("Unknown error detected")
 
