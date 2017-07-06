@@ -49,14 +49,14 @@ def main():
         print("Please give the path to the output!")
         try:
             filepath = input("\n") or filepath
-            if filepath is None:
-                print("Please give the path to the output!")
-                filepath = input("\n")
+            # if filepath is None:
+            #     print("Please give the path to the output!")
+            #     filepath = input("\n")
         except KeyboardInterrupt:
             print("\n Exiting GSTA")
             sys.exit(0)
         except TypeError:
-            print("Please give the path to the output!")
+            # print("Please give the path to the output!")
             pass
     if os.path.isfile(filepath):
         if not os.path.isabs(filepath):
