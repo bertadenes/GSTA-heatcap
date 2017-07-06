@@ -296,9 +296,12 @@ def postProcess(CF_name):
     except CV_postProcessException:
         cvout.print("\nDetermination of heat capacity is not possible for less than two trajectories!")
     except FileNotFoundError:
-        cvout.print("File not found")
+        print("File not found")
     except:
-        cvout.print("Unknown error detected")
+        try:
+            cvout.print("Unknown error detected")
+        except NameError:
+            print("Unknown error detected")
 
 
 def main():
