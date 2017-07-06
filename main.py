@@ -48,7 +48,7 @@ def main():
         filepath = None
         print("Please give the path to the output!")
         try:
-            while filepath is not None:
+            while filepath is None:
                 filepath = input("\n") or filepath
         except KeyboardInterrupt:
             print("\n Exiting GSTA")
