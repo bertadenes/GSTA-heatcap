@@ -53,16 +53,12 @@ def main():
         except KeyboardInterrupt:
             print("\n Exiting GSTA")
             sys.exit(0)
-    try:
-        if os.path.isfile(filepath):
-            if not os.path.isabs(filepath):
-                filepath = os.path.realpath(filepath)
-    except TypeError:
-        print("Invalid input given")
+    if os.path.isfile(filepath):
+        if not os.path.isabs(filepath):
+            filepath = os.path.realpath(filepath)
     else:
         print("File not found. " + filepath)
         sys.exit(0)
-
     Calc = g.Calculation(filepath)
     if args.type == "move":
         MOVE = True
