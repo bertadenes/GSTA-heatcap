@@ -262,6 +262,6 @@ def getAvrEnergies(Ep, Eksm, Ek, dt, F, Fsm, coord, coordsm):
         eksm_avr += (1 / ((len(i) - 1) * dt)) * integrate.simps(i, dx=dt)
     Ep_sm_avr = np.float64(ep_avr + w)
     Ek_sm_avr = np.float64(eksm_avr * 6.696044921386073e-28)
-    T = np.float64(ek_avr * 2 * 2.80162519510793E-24 / (3 * const.R))
+    T = np.float64(ek_avr * 2 * 2.80162519510793E-24 / ((len(coord)-6) * const.R))
     return Ep_sm_avr, Ek_sm_avr, T
 
