@@ -59,7 +59,8 @@ class CV_output():
                  + os.linesep + "Developed by" + os.linesep + "D. Berta    berta.denes@ttk.mta.hu*" + os.linesep + \
                  "D. Ferenc   ferenc.david@ttk.mta.hu" + os.linesep + "A. Madarasz madarasz.adam@ttk.mta.hu" + \
                  os.linesep + "Reported issues regarding the software are highly appreciated." + os.linesep + \
-                 os.linesep + "The developers acknowledge the help of Vilmos Nagy in programing issues. "
+                 os.linesep + "The developers acknowledge the help of Vilmos Nagy in programing issues. " + os.linesep + \
+                 "Filelock mechanism credits go to Evan Fosmark."
         try:
             FH.write(header)
             FH.write(os.linesep)
