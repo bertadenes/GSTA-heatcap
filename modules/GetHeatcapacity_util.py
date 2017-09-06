@@ -152,7 +152,7 @@ def fitLinear(x, y):
     :param y: Dependent variable array (Total energy)
     :return: Slope, standard deviation 
     """
-    if len(x) == 2:
+    if len(x) < 4:
         p = np.polyfit(x, y, deg=1, cov=False)
         return p[0], 0
     p, cov = np.polyfit(x, y, deg=1, cov=True)
