@@ -122,3 +122,6 @@ Configuration file is only needed if the initial run was set to an end already a
 Type can be *MOVE*(only if rotation was excluded) *VELGEN* and *MD*.
 The simulations' length is set to 1 ps, the timestep is 0.1 fs at the moment. We wish to optimize these parameters to
 actual cases and implement the algorithm.
+
+Due to differences in output syntax simulation with Gaussian16 is not stable. At the moment we suggest to use Gaussian09
+instead.
