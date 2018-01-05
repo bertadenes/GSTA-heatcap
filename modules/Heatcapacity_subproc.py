@@ -130,7 +130,7 @@ def DOS_from_velocity(path_pos, path_neg, calcdos=True, plot=False, temp=None):
     return dosoriginal  # , dossmvel
 
 
-def get_Ekinsmavrg_Epotsmavrg(path_pos, path_neg, temp=None):
+def get_Ekinsmavrg_Epotsmavrg(path_pos, path_neg, temp=None, calcHO=False):
     """
     Function to compute average smoothed kinetic and potential energies.
     :param path_pos: Path to positive velocity G09 BOMD out file
@@ -227,6 +227,25 @@ def get_Ekinsmavrg_Epotsmavrg(path_pos, path_neg, temp=None):
     # avrEksm = (1 / (len(eksm) * dt)) * integrate.simps(np.multiply(eksm, Eh2J), dx=dt)
     # print(temp,avrEk*2/const.k,avrEksm*2/const.k)
     Ep_sm_avr, Ek_sm_avr, T = getAvrEnergies(epot, eksm, ek, dt, Forces, smforces, coord, smcoord)
+
+    if calcHO:
+        smoothHO = partial(g09f.smoothFn_windowed_HO, arg=t, Tf=temp, target=2, a=None, b=None)
+        # Smoothing velocities
+        with closing(Pool(processes=8)) as pool:
+            smvel2 = pool.map(smoothHO, MwVel)
+            pool.terminate()
+        # Smoothing forces
+        with closing(Pool(processes=8)) as pool:
+            smforces2 = pool.map(smoothHO, Forces)
+            pool.terminate()
+        # Smoothing coordinates
+        with closing(Pool(processes=8)) as pool:
+            smcoord2 = pool.map(smoothHO, coord)
+            pool.terminate()
+
+        eksm2 = np.transpose(calcEkin(smvel2))
+        Ep_sm_avr2, Ek_sm_avr2, T2 = getAvrEnergies(epot, eksm2, ek, dt, Forces, smforces2, coord, smcoord2)
+        return 627503 * Ep_sm_avr, 1000 * Ek_sm_avr, T, 627503 * Ep_sm_avr2, 1000 * Ek_sm_avr2, T2
 
     # vars = globals().copy()
     # vars.update(locals())

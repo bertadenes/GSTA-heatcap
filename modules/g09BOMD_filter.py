@@ -13,6 +13,8 @@ from daemon.g09calcHandler import g09velgenHandler
 from daemon.g09calcHandler import g09MDHandler
 import cclib  # parsing gaussian output
 
+from modules.GetHeatcapacity_util import *
+
 try:
     import modules.filelock as fl
 except ImportError:
@@ -972,8 +974,17 @@ def smoothFn_old(fn, arg, Tf, target=1, a=None, b=None):
     return smfn
 
 
-def smoothFn_windowed(fn, arg, Tf, target=1, a=None, b=None):
-    """g(tau) = A * exp(B * tau^2)"""
+def smoothFn_windowed(fn, arg, Tf, target=2, a=None, b=None):
+    """
+    formula: g(tau) = A * exp(B * tau^2)
+    :param fn: 
+    :param arg: 
+    :param Tf: 
+    :param target: 
+    :param a: 
+    :param b: 
+    :return: 
+    """
     kB = const.k
     h = const.h
     pi = const.pi
@@ -993,14 +1004,49 @@ def smoothFn_windowed(fn, arg, Tf, target=1, a=None, b=None):
         B = np.float64((-8 * kB ** 2 * Tf ** 2 * pi ** 3) / (h ** 2))
     else:
         A, B = a, b
+    # numfile = open("numfn10e8.bin", "rb")
+    # sm = pickle.load(numfile)
+    # numfile.close()
+
     smfn = np.empty(shape=len(arg), dtype=np.float64)
     for i in range(len(arg)):
         G = np.multiply(A, np.exp(np.multiply(np.square(np.subtract(arg, arg[i])), B)))
+        # if i == 0:
+        #     print(G)
+        #     plt.plot(arg, sm, 'x', arg, G, "o")
+        #     plt.show()
         norm = integrate.simps(G, dx=arg[1] - arg[0])
         fng = np.multiply(fn, G)
         smfn[i] = integrate.simps(fng, dx=arg[1] - arg[0]) / norm
     return smfn
 
+def smoothFn_windowed_HO(fn, arg, Tf, target=2, a=None, b=None):
+    """
+    Smoothing function derived for harmonic oscillator. 
+    :param fn: Numeric representation of the function to be smoothed.
+    :param arg: Functions argument to use for the smoothing.
+    :param Tf: Irrelevant as the function is pre-determined.
+    :param target: Irrelevant, only taken for compatibility.
+    :param a: Irrelevant, only taken for compatibility.
+    :param b: Irrelevant, only taken for compatibility.
+    :return: Smoothed function values in the same numeric representation.
+    """
+    # numfile = open("/home/berta/bin/GSTA-heatcap/modules/numHO_300K_10e8_1pk_corr.bin", "rb")
+    # sm = pickle.load(numfile)
+    # numfile.close()
+    A = Tf*const.k*np.square(const.pi)/const.h
+    B = 2*Tf*const.k*np.square(const.pi)/const.h
+    # Tf = np.float64(300.0)
+    smfn = np.empty(shape=len(arg), dtype=np.float64)
+    for i in range(len(arg)):
+        # W = np.empty(shape=len(arg), dtype=np.float64)
+        # W[0:i] = sm[i:0:-1]
+        # W[i:] = sm[0:(len(W) - len(sm)) - i]
+        W = np.divide(A, np.square(np.cosh(np.multiply(np.subtract(arg, arg[i]), B))))
+        norm = integrate.simps(W, dx=arg[1] - arg[0])
+        fng = np.multiply(fn, W)
+        smfn[i] = integrate.simps(fng, dx=arg[1] - arg[0]) / norm
+    return smfn
 
 # daemon for gentle output monitoring
 # from daemon.g09daemon import g09daemon
@@ -1619,35 +1665,93 @@ class SubCalc(Calculation):
 #                               TESTS                                #
 ######################################################################
 def main():
-    dirpath = "/media/berta/kaptar_home/calculations/heat_capacity/progTest/v2.3.0_tests/vibwise/MD/"
-    filepath1 = dirpath + "water_vib1_MD_pos.out"
-    filepath2 = dirpath + "water_vib1_MD_neg.out"
+    dirpath = "/media/berta/kaptar_home/calculations/heat_capacity/MeOH/MD/"
+    # filepath1 = dirpath + "MeOH_traj1_MD_pos.out"
+    # filepath2 = dirpath + "MeOH_traj1_MD_neg.out"
 
     # mol = processg09output(filepath, isBOMD=True)
     # createMDInput(mol,filepath)
     # createVelInputs(mol,filepath)
 
-    trajecs1 = getTrajSummary(filepath1)
-    trajecs2 = getTrajSummary(filepath2)
+    # trajecs1 = getTrajSummary(filepath1)
+    # trajecs2 = getTrajSummary(filepath2)
 
     # xyz = getCoords(filepath)
-    t_pos = processTrajSummary(trajecs1)
-    t_neg = processTrajSummary(trajecs2)
-    t = np.multiply(np.concatenate((-t_neg[0][:0:-1], t_pos[0])), 1e-15)
+    # t_pos = processTrajSummary(trajecs1)
+    # t_neg = processTrajSummary(trajecs2)
+    # t = np.multiply(np.concatenate((-t_neg[0][:0:-1], t_pos[0])), 1e-15)
 
-    Ep_pos = getEpot(filepath1)
-    Ep_neg = getEpot(filepath2)
-    Ep = np.concatenate((Ep_neg[0][:0:-1], Ep_pos[0]))
+    # Ep_pos = getEpot(filepath1)
+    # Ep_neg = getEpot(filepath2)
+    # Ep = np.concatenate((Ep_neg[0][:0:-1], Ep_pos[0]))
 
-    smt, smEp = smoothFn(Ep, t, 300)
-    # smEp_ex = smoothFn(Ep,t,300)
+    t = np.linspace(-5e-13, 5e-13, 1e4+1)
+    # nu_list = np.linspace(1.2e13, 1.2e14, 10)
+    # T_list = np.linspace(100.0, 1000.0, 10)
+    # for nu in nu_list:
+    #     for T in T_list:
+    T = 300.0
+    nu2 = 1.2e13
+    nu1 = 5e12
+    phi = 2e13
+    # v = np.cos(t*2*const.pi*nu1)+np.cos(t*2*const.pi*nu2+phi)
+    v = np.cos(t * 2 * const.pi * nu1)
 
-    # print(t,Ep)
-
-    # plt.plot(t,Ep,"o")
-    # plt.show()
-    plt.plot(t, Ep, "o", smt, smEp)
+    # smv = smoothFn_windowed(Ep, t, 300)
+    smv2 = smoothFn_windowed_HO(v, t, T)
+    plt.plot(t, v, "o", t, smv2, "x")
     plt.show()
+
+    ac = autocorr_manual(v)
+    smac = autocorr_manual(smv2)
+    # plt.plot(t, ac)
+    # plt.show()
+
+    dos = getDos(ac)
+    smdos = getDos(smac)
+    dosQM = getDosQM(dos, T)
+    # f, axarr = plt.subplots(2)
+    # axarr[0].plot(range(6000), dos)
+    # axarr[1].plot(range(6000), dosQM)
+    # axarr[0].set_title("dos")
+    # axarr[1].set_title("dosQM")
+    # plt.plot(range(6000), dos, range(6000), dosQM, range(6000), smdos)
+    # plt.show()
+    with open("/home/berta/num-dos", "w") as f:
+        for i in range(6000):
+            f.write(str(i)+" "+str(dos[i])+" "+str(dosQM[i])+"\n")
+
+    int_class = integrate.simps(dos, dx=1.0)
+    int_QM = integrate.simps(dosQM, dx=1.0)
+    int_sm = integrate.simps(smdos, dx=1.0)
+    cv_1PT = 1 * const.R * int_QM / int_class
+    cv_sm = 1 * const.R * int_sm / int_class
+    cv_exact1 = (const.R * np.square((const.h * nu1) / (2 * T * const.k))) / (np.square(np.sinh((const.h * nu1) / (2 * T * const.k))))
+    # cv_exact2 = (const.R * np.square((const.h * nu2) / (2 * T * const.k))) / (np.square(np.sinh((const.h * nu2) / (2 * T * const.k))))
+    cv_exact = cv_exact1 # + cv_exact2
+    E = np.square(v)
+    Esm = np.square(smv2)
+    E_avr = (1 / ((len(E) - 1) * 1e16)) * integrate.simps(E, dx=1e16)
+    Esm_avr = (1 / ((len(Esm) - 1) * 1e16)) * integrate.simps(Esm, dx=1e16)
+    cv_sm2 = 1 * const.R * Esm_avr / E_avr
+
+    print(cv_exact, cv_1PT, cv_sm, cv_sm2)
+    # with open("/home/denes/numtest","a") as f:
+    #     f.write("Numeric test 1 ps, 0.1 fs timestep, nu: "+str(nu)+" T: "+str(T)+"\n")
+    #     f.write("autocorrelation function\n")
+    #     for n in ac: f.write(str(n))
+    #     f.write("\nsmoothed autocorrelation function\n")
+    #     for n in smac: f.write(str(n))
+    #     f.write("\nDoS\n")
+    #     for n in dos: f.write(str(n))
+    #     f.write("\nDoS weighted\n")
+    #     for n in dosQM: f.write(str(n))
+    #     f.write("\nDoS from smoothed velocity\n")
+    #     for n in smdos: f.write(str(n))
+    #     f.write("\n")
+    # with open("/home/denes/numtest_cv","a") as f:
+    #     f.write("Numeric test 1 ps, 0.1 fs timestep, nu: " + str(nu) + " T: " + str(T) + "\n")
+    #     f.write("QHO: "+str(cv_exact)+" Smoothing DoS: "+str(cv_sm)+" Smoothing: "+str(const.R*Esm_avr/E_avr)+" 1PT: "+str(cv_1PT)+"\n")
 
 
 if __name__ == "__main__":

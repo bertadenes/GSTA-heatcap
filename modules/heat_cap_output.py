@@ -109,6 +109,9 @@ class CV_postProcess():
         self.Ekinsmavr = []
         self.Epotsmavr = []
         self.Tclass = []
+        self.EkinHO = []
+        self.EpotHO = []
+        self.TclassHO = []
         for SC in Calc.SubCalcs:
             out1ok = out2ok = False
             if SC.BOMDDONE:
@@ -187,6 +190,12 @@ class CV_postProcess():
     def getCV_fromTrajSmoothing(self):
         return hcu.fitLinear(self.Tclass, np.add(np.array(self.Ekinsmavr), np.array(self.Epotsmavr)))
 
+    def getCV_fromHOSmoothing(self):
+        return hcu.fitLinear(self.TclassHO, np.add(np.array(self.EkinHO), np.array(self.EpotHO)))
+
+    def getCV_fromHOVelSmoothing(self):
+        return hcu.fitLinear(self.TclassHO, np.multiply(np.array(self.EkinHO), 2))
+
 
 def calcDOS(traj, ppobj):
     """Not function of CV_postProcess because it raises error when called by Pool."""
@@ -200,11 +209,17 @@ def calcDOS(traj, ppobj):
     return
 
 
-def calcSmoothedEnergies(traj, ppobj):
+def calcSmoothedEnergies(traj, ppobj, calcHO=False):
     """Not function of CV_postProcess because it raises error when called by Pool."""
     index = ppobj.trajs.index(traj)
     try:
-        Ep, Ek, T = hcs.get_Ekinsmavrg_Epotsmavrg(ppobj.outputsPOS[index], ppobj.outputsNEG[index], temp=ppobj.temp)
+        if calcHO:
+            Ep, Ek, T, Ep2, Ek2, T2 = hcs.get_Ekinsmavrg_Epotsmavrg(ppobj.outputsPOS[index], ppobj.outputsNEG[index], temp=ppobj.temp, calcHO=True)
+            ppobj.EkinHO.append(Ek2)
+            ppobj.EpotHO.append(Ep2)
+            ppobj.TclassHO.append(T2)
+        else:
+            Ep, Ek, T = hcs.get_Ekinsmavrg_Epotsmavrg(ppobj.outputsPOS[index], ppobj.outputsNEG[index], temp=ppobj.temp)
         ppobj.Ekinsmavr.append(Ek)
         ppobj.Epotsmavr.append(Ep)
         ppobj.Tclass.append(T)
@@ -228,6 +243,7 @@ def postProcess(CF_name):
     """
     global cvout
     try:
+        calcHO=True
         print("postProcess started")
         CF = open(CF_name, "rb")
         Calc = pickle.load(CF)
@@ -241,14 +257,24 @@ def postProcess(CF_name):
             calcDOS(traj, pp)
             pp.dosQM.append(hcu.getDosQM(pp.dos[-1], pp.temp))
             pp.dosG.append(hcu.getDosG(pp.dos[-1], pp.temp))
-            calcSmoothedEnergies(traj, pp)
+            calcSmoothedEnergies(traj, pp, calcHO=calcHO)
             cvout.print("{0:s} processed".format(traj))
             # break
         pp.removeWrongTrajs()
+        f = open("DoS",'w')
         for traj in pp.trajs:
             pp.getCV_fromDos(traj)
+            f.write("DoS\n")
+            f.write(pp.dos)
+            f.write("\n")
+            f.write("weighted DoS\n")
+            f.write(pp.dosQM)
+        f.close()
         CV_v, err_v = pp.getCV_fromVelSmoothing()
         CV_t, err_t = pp.getCV_fromTrajSmoothing()
+        if calcHO:
+            CV_HO, err_HO = pp.getCV_fromHOSmoothing()
+            CV_HOv, err_HOv = pp.getCV_fromHOVelSmoothing()
         #     break
         # f, axarr = plt.subplots(3)
         # axarr[0].plot(range(6000), pp.dos[0])
@@ -272,25 +298,35 @@ def postProcess(CF_name):
         for h in head:
             cvout.print('{0:<{width}s}'.format(h, width=width), end='')
         cvout.print('')
-        # cvout.print("traj\tvib temp\trot temp\tkin temp\tmean Ekinsm\tmean Epotsm A.U.")
+        cvout.print("traj\tvib temp\trot temp\tkin temp\tmean Ekinsm\tmean Epotsm A.U.")
         for i in range(len(pp.trajs)):
             cvout.print(
                 "{0:<{width}s}{1:<{width}f}{2:<{width}d}{3:<{width}f}{4:<{width}f}{5:<{width}f}".format(pp.trajs[i],
                                                                                                         pp.rndtemps[i],
                                                                                                         pp.rtemps[i],
                                                                                                         pp.Tclass[i],
-                                                                                                        pp.Ekinsmavr[
-                                                                                                            i] / 627503,
-                                                                                                        pp.Epotsmavr[
-                                                                                                            i] / 627503.0,
+                                                                                                        pp.Ekinsmavr[i] / 627503.0,
+                                                                                                        pp.Epotsmavr[i] / 627503.0,
                                                                                                         width=width),
                 end='')
             cvout.print('')
+        if calcHO:
+            cvout.print("Trajectory data smoothed by QHO function at 300.0 K:")
+            for h in head:
+                cvout.print('{0:<{width}s}'.format(h, width=width), end='')
+            cvout.print('')
+            for i in range(len(pp.trajs)):
+                cvout.print(
+                    "{0:<{width}s}{1:<{width}f}{2:<{width}d}{3:<{width}f}{4:<{width}f}{5:<{width}f}".format(pp.trajs[i],pp.rndtemps[i],pp.rtemps[i],pp.TclassHO[i],pp.EkinHO[i] / 627503.0,pp.EpotHO[i] / 627503.0,width=width),end='')
+                cvout.print('')
         cvout.print("Heat capacities:")
         cvout.print("Berens: {0:f} +- {1:f} cal/(K mol)".format(np.mean(pp.cv) / 4.184, np.std(pp.cv) / 4.184))
-        cvout.print("Gauss: {0:f} +- {1:f} cal/(K mol)".format(np.mean(pp.cvG) / 4.184, np.std(pp.cvG) / 4.184))
+        # cvout.print("Gauss: {0:f} +- {1:f} cal/(K mol)".format(np.mean(pp.cvG) / 4.184, np.std(pp.cvG) / 4.184))
         cvout.print("Velocity smoothing: {0:f} +- {1:f} cal/(K mol)".format(CV_v, err_v, ))
         cvout.print("Trajectory smoothing: {0:f} +- {1:f} cal/(K mol)".format(CV_t, err_t))
+        if calcHO:
+            cvout.print("Velocity smoothing with QHO function: {0:f} +- {1:f} cal/(K mol)".format(CV_HOv, err_HOv))
+            cvout.print("Trajectory smoothing with QHO function: {0:f} +- {1:f} cal/(K mol)".format(CV_HO, err_HO))
         cvout.print("Based on {0:d} trajectories".format(len(pp.trajs)))
         cvout.print("{0:d} wrong trajectories".format(len(pp.wrongtrajs)))
         cvout.print("{0:d} Density of states calculated\n".format(len(pp.dos)))
@@ -298,12 +334,12 @@ def postProcess(CF_name):
         cvout.print("\nDetermination of heat capacity is not possible for less than two trajectories!")
     except FileNotFoundError:
         print("File not found")
-    except:
-        try:
-            cvout.print("Unknown error detected")
-        except NameError:
-            print("Unknown error detected")
-
+    # except:
+    #     try:
+    #         cvout.print("Unknown error detected")
+    #     except NameError:
+    #         print("Unknown error detected")
+    #
 
 def main():
     postProcess(".CalcFile_H2O_B3PW91")
