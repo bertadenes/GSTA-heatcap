@@ -405,7 +405,9 @@ def createMoveInputs(Calc):
     for i in range(N):
         inp = Calc.freqfile.split('.')[0] + "_traj" + str(i + 1) + ".gjf" % (Calc.temp)
         rand = np.random.randint(low=1, high=400000, dtype=np.int64)
-        rndtemp = genRndTemp(Calc.temp, Calc.mol.natom)
+        """rndtemp is overwriten to perform energy dissipation calculation from 1 mode"""
+        # rndtemp = genRndTemp(Calc.temp, Calc.mol.natom)
+        rndtemp = Calc.temp
         com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(
             len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=0) IOp(1/44=" + str(rand) + ")"
         title = "Trajectory " + str(i + 1) + " for " + Calc.freqfile.split('.')[0]
@@ -431,7 +433,11 @@ def createMoveInputs(Calc):
                 inputfile.write(str(j + 1) + ' ')
             inputfile.write('\n')
             for j in range(len(Calc.mol.vibfreqs)):
-                inputfile.write(str(j + 1) + ' ' + str(energy) + ' ')
+                """set energy for one mode only """
+                if j == 57:
+                    inputfile.write(str(j + 1) + ' ' + str(energy) + ' ')
+                else:
+                    inputfile.write(str(j + 1) + ' 0.0 ')
             inputfile.write('\n\n')
     logging.info("PID" + str(os.getpid()) + ": " + str(N) + " inputs were generated in the " + dirpath + " directory.")
     return
@@ -477,7 +483,10 @@ def createMovedVelInputs(SubCalc):
             inputfile.write(str(j + 1) + ' ')
         inputfile.write('\n')
         for j in range(len(SubCalc.mol.modeEkin)):
-            inputfile.write(str(j + 1) + ' ' + str(SubCalc.mol.modeEkin[j]) + ' ')
+            if j == 57:
+                inputfile.write(str(j + 1) + ' ' + str(SubCalc.mol.modeEkin[j]) + ' ')
+            else:
+                inputfile.write(str(j + 1) + ' 0.0 ')
         inputfile.write('\n\n')
     logging.info(
         "PID" + str(os.getpid()) + ": one velgen input was generated in the " + dirpath + " directory for " + str(
