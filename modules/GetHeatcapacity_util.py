@@ -9,7 +9,7 @@ Here are the utilities for:
 from scipy import linalg, integrate
 import scipy.constants as const
 import numpy as np
-import modules.g09BOMD_filter as g
+# import modules.g09BOMD_filter as g
 
 R = const.R
 NA = const.Avogadro

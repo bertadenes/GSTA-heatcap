@@ -18,10 +18,10 @@ programName = "GSTA-hc"
 
 from daemon.g09daemon import g09daemon
 import modules.g09BOMD_filter as g
-import sys, os, pickle, logging, time, argparse, glob
-import numpy as np
 import modules.Heatcapacity_subproc as hcs
 import modules.heat_cap_output as hcout
+import sys, os, pickle, logging, time, argparse, glob
+# import numpy as np
 
 
 def main():
