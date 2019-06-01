@@ -625,6 +625,7 @@ def createMDInput(subCalc):
     if not os.path.exists(dirpath): os.makedirs(dirpath)
     with open(dirpath + os.sep + subCalc.inputname.split('.')[0] + "_MD_pos.gjf", 'w') as inputfile:
         subCalc.MDinput1 = subCalc.inputname.split('.')[0] + "_MD_pos.gjf"
+        inputfile.write("%nproc=8\n")
         inputfile.write("#p " + subCalc.mol.method + '/' + subCalc.mol.basis + " BOMD(gradientonly,StepSize=" + str(
             stepsize) + ",MaxPoints=" + MP + ",ReadMWVelocity,rtemp=" + rtemp + ") nosymmetry\n\n")
         inputfile.write(title + "\n\n")
