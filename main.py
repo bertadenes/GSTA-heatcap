@@ -21,6 +21,7 @@ import modules.g09BOMD_filter as g
 import modules.Heatcapacity_subproc as hcs
 import modules.heat_cap_output as hcout
 import sys, os, pickle, logging, time, argparse, glob
+import mode_coupling.mode_coupling as mc
 # import numpy as np
 
 
@@ -41,6 +42,9 @@ def main():
         else:
             hcout.main()
             sys.exit(0)
+    elif args.type == "mc":
+        mc.coupling_process(args.file)
+        sys.exit(0)
 
     if args.file != None:
         filepath = args.file

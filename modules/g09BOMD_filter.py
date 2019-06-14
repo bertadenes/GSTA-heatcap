@@ -409,7 +409,7 @@ def createMoveInputs(Calc):
         # rndtemp = genRndTemp(Calc.temp, Calc.mol.natom)
         rndtemp = Calc.temp
         com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(
-            len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=0) IOp(1/44=" + str(rand) + ")"
+            len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=0) IOp(1/44=" + str(rand) + ")  nosymmetry"
         title = "Trajectory " + str(i + 1) + " for " + Calc.freqfile.split('.')[0]
         energy = np.float64(const.R * (rndtemp) * 0.000239005736137668)
         Calc.addSubCalc(inp)
@@ -533,7 +533,7 @@ def createVelInputs(Calc):
         rndtemp = genRndTemp(Calc.temp, Calc.mol.natom)
         rtemp = str(int(rndtemp))
         com = " BOMD(update=1000,StepSize=1,MaxPoints=1,nsample=" + str(
-            len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=" + rtemp + ") IOp(1/44=" + str(rand) + ")"
+            len(Calc.mol.vibfreqs)) + ",NTraj=1,Sample=Microcanonical,rtemp=" + rtemp + ") IOp(1/44=" + str(rand) + ") nosymmetry"
         title = "Trajectory " + str(i + 1) + " for " + Calc.freqfile.split('.')[0]
         energy = np.float64(int(rndtemp) * 0.001987203611)
         Calc.addSubCalc(inp)
