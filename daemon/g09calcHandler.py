@@ -152,7 +152,7 @@ class g09calcHandler():
         logging.info("PID" + str(os.getpid()) + ": terminated with error: " + str(len(self.wrongOutputs))+"\n")
         if len(self.wrongOutputs) != 0:
             for wout in self.wrongOutputs:
-                Popen(["entropy", "-f", wout, "-t", "velgenwrong"])
+                Popen([program, "-f", wout, "-t", "velgenwrong"])
         sys.exit(0)
 
 class g09velgenHandler(g09calcHandler):

@@ -471,7 +471,7 @@ def createMovedVelInputs(SubCalc):
         len(SubCalc.mol.modeEkin)) + ",NTraj=1,rtemp=" + rtemp + ") nosymmetry"
     title = SubCalc.name + " for " + SubCalc.freqfile.split('.')[0]
     with open(dirpath + os.sep + inp, 'w') as inputfile:
-        inputfile.write("#p " + SubCalc.mol.method + '/' + SubCalc.mol.basis + com + "\n\n")
+        inputfile.write("%nproc=8\n#p " + SubCalc.mol.method + '/' + SubCalc.mol.basis + com + "\n\n")
         inputfile.write(title + "\n\n")
         inputfile.write(str(SubCalc.mol.charge) + ' ' + str(SubCalc.mol.mult) + '\n')
         for j in range(len(SubCalc.mol.atomnos)):
