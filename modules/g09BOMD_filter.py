@@ -177,8 +177,8 @@ def getCoords(filePath):
     # for i in range(len(coords)):
     #     print("Coordinates of",len(coords[i][0]),"atoms were read at",len(coords[i]),"steps for trajectory",i+1,".")
 
-    return coords
-    # return 0.52917724900001*coords #get them in angstrom
+    # return coords
+    return 0.52917724900001*coords #get them in angstrom
 
 
 def getVel(filePath):

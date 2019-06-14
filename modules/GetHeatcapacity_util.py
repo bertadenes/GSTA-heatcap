@@ -104,7 +104,8 @@ def calcEkin(mwvel):
         # for j in i:
         #    ek[k] = j ** 2 * 0.5
         #    k += 1
-        ek = np.divide(np.square(i), 2)
+        # ek = np.divide(np.square(i), 2)
+        ek = np.divide(np.square(i), 72 * 2 * 9.375828402564380E+29)  # in hartrees
         ekin.append(ek)
         # ek = np.divide(np.sum(np.square(i)),2*9.375828402564380E+29) # in hartrees
         # ekin[l] = ek
