@@ -16,7 +16,7 @@ def coupling_process(freqname):
     freq = g.processg09output(freqname)
     zero_pot = freq.scfenergies[-1] * 0.036749324
     MDname = os.path.join(os.path.abspath(os.path.dirname(freqname)), "MD",
-                          "{0:s}_traj{1:d}_MD_pos.out".format(freqname.split(os.sep)[-1].split('.')[0], 1))
+                          "{0:s}_traj{1:d}_MD_pos.out".format(freqname.split(os.sep)[-1].split('.')[0], 2))
     traj = Namespace()
     traj.coord = g.getCoords(MDname)[0, :, :, :]
     traj.vel = g.getVel(MDname)
@@ -46,9 +46,12 @@ def coupling_process(freqname):
     f, ax = plt.subplots()
     plt.xlabel("Step")
     plt.ylabel("Coefficient")
-    ax.plot(modecoeff[:, 57], label="total")
-    ax.plot(kincoeff[:, 57], label="kinetic")
-    ax.plot(potcoeff[:, 57], label="potential")
+    # ax.plot(modecoeff[:, 57], label="total")
+    # ax.plot(kincoeff[:, 57], label="kinetic")
+    # ax.plot(potcoeff[:, 57], label="potential")
+    for k in range(66):
+        # ax.plot(kincoeff[:, k], label="mode {:d}".format(k + 1))
+        ax.plot(potcoeff[:, k], label="mode {:d}".format(k + 1))
     plt.legend(loc='upper left')
     plt.show()
 
