@@ -130,6 +130,76 @@ def DOS_from_velocity(path_pos, path_neg, calcdos=True, plot=False, temp=None):
     return dosoriginal  # , dossmvel
 
 
+def DOS_from_velocity_single(path_pos, calcdos=True, plot=False, temp=None):
+    """
+    Function to compute density of state function via the Fourier transformation
+    of the velocity autocorrelation function
+    :param path_pos: Path to positive BOMD output
+    :param calcdos: True by default
+    :param plot: True if plotting of functions is required (False by default)
+    :param temp: Temperature of smoothing
+    :return: Density of states function
+    """
+    J2Eh = 2.293710449e17  # Joule to Hartree conversion
+    Eh2J = J2Eh ** -1  # Hartree to Joule conversion
+    MwVel = []
+    if temp is None:
+        temp = g09f.getTemp(path_pos)
+    AtMass = g09f.getAtMass(path_pos)
+
+    # Extract mass weighted velocities from outputs
+    for j in np.nditer(g09f.getVel(path_pos), flags=['external_loop'], order='F'):
+        MwVel.append(j)
+
+    Na, Nt, Ns, dt = g09f.getCalcInfo(path_pos)
+    t = np.empty(len(MwVel[0]))
+
+    # get time array
+    j = 0
+    i = 0
+    while i < len(t):
+        # cartvel[0][i] = np.cos(0.1*i)# for test only
+        t[i] = j
+        j += dt * 1e-15
+        i += 1
+
+    # Smoothing velocities
+    # smooth = partial(g09f.smoothFn_windowed, arg=t, Tf=temp, target=2, a=None, b=None)
+    # with closing(Pool(processes=8)) as pool:
+    #     smvel = pool.map(smooth, MwVel)
+    #     pool.terminate()
+
+    # Computing Density of state function
+    if calcdos:
+        acoriginal = []
+        for j in MwVel:
+            acoriginal.append(autocorr_manual(j))
+        actotone = sumfn(acoriginal)
+        dosoriginal = getDos(actotone)
+
+        # ac = []
+        # for i in smvel:
+        #     ac.append(autocorr_manual(i))
+        # acsmvel = sumfn(ac)
+        # dossmvel = getDos(acsmvel)
+    else:
+        pass
+
+    #### Plotting some of the functions if required ####
+    if plot and calcdos:
+        x1 = range(6000)
+        plt.figure(1)
+        # plt.subplot(211)
+        plt.plot(x1, dosoriginal)
+        # plt.subplot(212)
+        # plt.plot(x1, dossmvel)
+        plt.show()
+    else:
+        pass
+
+    return dosoriginal  # , dossmvel
+
+
 def get_Ekinsmavrg_Epotsmavrg(path_pos, path_neg, temp=None, calcHO=False):
     """
     Function to compute average smoothed kinetic and potential energies.

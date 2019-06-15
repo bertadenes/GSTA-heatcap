@@ -2,6 +2,8 @@ import os
 import numpy as np
 import modules.g09BOMD_filter as g
 import modules.GetHeatcapacity_util as u
+from modules.Heatcapacity_subproc import DOS_from_velocity_single
+import mode_coupling.vibspectrum as spect
 import matplotlib
 matplotlib.use('TkAgg') # MUST BE CALLED BEFORE IMPORTING plt
 import matplotlib.pyplot as plt
@@ -17,6 +19,21 @@ def coupling_process(freqname):
     zero_pot = freq.scfenergies[-1] * 0.036749324
     MDname = os.path.join(os.path.abspath(os.path.dirname(freqname)), "MD",
                           "{0:s}_traj{1:d}_MD_pos.out".format(freqname.split(os.sep)[-1].split('.')[0], 2))
+    dos = DOS_from_velocity_single(MDname)
+    params = spect.Params()
+    params.files = [freqname]
+    raman = spect.process(params)
+    IR = spect.process_IR(params)
+    x1 = range(6000)
+    f2, ax2 = plt.subplots()
+    plt.xlabel("Frequency cm^-1")
+    plt.ylabel("Normalized Intensity")
+    ax2.plot(x1, dos/np.max(dos), label="VDoS")
+    ax2.plot(x1, raman[0]/np.max(raman[0]), label="raman")
+    ax2.plot(x1, IR[0]/np.max(IR[0]), label="IR")
+    plt.legend(loc='best')
+    plt.show()
+
     traj = Namespace()
     traj.coord = g.getCoords(MDname)[0, :, :, :]
     traj.vel = g.getVel(MDname)
@@ -30,7 +47,8 @@ def coupling_process(freqname):
         # print("{0:f} {1:f} {2:f}".format(traj.Ekin[i],
         #                                  traj.Epot[i] - zero_pot,
         #                                  traj.Ekin[i]+traj.Epot[i]))
-        disp = np.reshape((traj.coord[i] - freq.atomcoords[-1]), freq.natom * 3)
+        # disp = np.reshape((traj.coord[i] - freq.atomcoords[-1]), freq.natom * 3)
+        disp = np.reshape((traj.coord[i] - traj.coord[0]), freq.natom * 3)
         proj_pot = []
         proj_kin = []
         for v in freq.vibdisps:
@@ -46,13 +64,18 @@ def coupling_process(freqname):
     f, ax = plt.subplots()
     plt.xlabel("Step")
     plt.ylabel("Coefficient")
-    # ax.plot(modecoeff[:, 57], label="total")
-    # ax.plot(kincoeff[:, 57], label="kinetic")
-    # ax.plot(potcoeff[:, 57], label="potential")
-    for k in range(66):
+    ax.plot(modecoeff[:, 57], label="total")
+    ax.plot(kincoeff[:, 57], label="kinetic")
+    ax.plot(potcoeff[:, 57], label="potential")
+    # for k in range(66):
+        # ax.plot(modecoeff[:, k], label="mode {:d}".format(k + 1))
         # ax.plot(kincoeff[:, k], label="mode {:d}".format(k + 1))
-        ax.plot(potcoeff[:, k], label="mode {:d}".format(k + 1))
-    plt.legend(loc='upper left')
+        # ax.plot(potcoeff[1:, k], label="mode {:d}".format(k + 1))
+    ind = 0
+    for p in np.max(potcoeff[1:, :], axis=0):
+        ind += 1
+        print(ind, p)
+    plt.legend(loc='best')
     plt.show()
 
     print("stop")
