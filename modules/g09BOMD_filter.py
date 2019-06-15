@@ -434,7 +434,7 @@ def createMoveInputs(Calc):
             inputfile.write('\n')
             for j in range(len(Calc.mol.vibfreqs)):
                 """set energy for one mode only """
-                if j == 57:
+                if j == 47:
                     inputfile.write(str(j + 1) + ' ' + str(energy) + ' ')
                 else:
                     inputfile.write(str(j + 1) + ' 0.0 ')

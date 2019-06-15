@@ -29,7 +29,7 @@ def coupling_process(freqname):
     plt.xlabel("Frequency cm^-1")
     plt.ylabel("Normalized Intensity")
     ax2.plot(x1, dos/np.max(dos), label="VDoS")
-    ax2.plot(x1, raman[0]/np.max(raman[0]), label="raman")
+    ax2.plot(x1, raman[0]/np.max(raman[0]), label="Raman")
     ax2.plot(x1, IR[0]/np.max(IR[0]), label="IR")
     plt.legend(loc='best')
     plt.show()
