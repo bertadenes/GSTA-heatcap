@@ -17,8 +17,9 @@ class Namespace:
 def coupling_process(freqname):
     freq = g.processg09output(freqname)
     zero_pot = freq.scfenergies[-1] * 0.036749324
-    MDname = os.path.join(os.path.abspath(os.path.dirname(freqname)), "MD",
-                          "{0:s}_traj{1:d}_MD_pos.out".format(freqname.split(os.sep)[-1].split('.')[0], 2))
+    # MDname = os.path.join(os.path.abspath(os.path.dirname(freqname)), "MD",
+    #                       "{0:s}_traj{1:d}_MD_pos.out".format(freqname.split(os.sep)[-1].split('.')[0], 2))
+    MDname = "/media/berta/fourier/BPDT/BOMD/bpdt_2Au_mode48kin3000K.out"
     dos = DOS_from_velocity_single(MDname)
     params = spect.Params()
     params.files = [freqname]
